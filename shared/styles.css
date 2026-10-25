@@ -1715,58 +1715,24 @@ button.danger { color: var(--bad); }
 .gd-link { color: #2563eb; }
 .gd-actions.two { grid-template-columns: 1fr 1fr; padding: 0 .65em; }
 /* DBS: the first screen, log-in, dark amount bar and the rest, after DBS's own screenshots */
-.gd-dbsstart { flex: 1; display: flex; flex-direction: column; color: #fff; padding: .8em .7em; background: radial-gradient(circle at 70% 30%, #6d4aa8 0, transparent 45%), radial-gradient(circle at 25% 65%, #2f6f4f 0, transparent 50%), linear-gradient(180deg, #1b2440, #0f1a14); }
-.gd-scamnote { background: rgb(0 0 0 / .55); border-radius: 8px; padding: .55em .65em; font-size: .85em; }
-.gd-peek { margin: auto 0 .6em; text-align: center; display: flex; flex-direction: column; font-size: .9em; }
-.gd-peek small { color: rgb(255 255 255 / .8); }
-.gd-shortcuts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .3em; }
-.gd-shortcuts .gd-tile span { background: rgb(255 255 255 / .12); }
-.gd-shortcuts .gd-tile small { color: #fff; text-align: center; font-size: .82em; }
-.gd-promo { margin-top: .6em; padding: 1em .8em; border-radius: 10px; background: linear-gradient(120deg, #b91c1c, #ef4444); font-weight: 700; }
-.gd-dbslogin { flex: 1; background: #555; color: #fff; padding: 1em .9em; display: flex; flex-direction: column; justify-content: center; gap: .3em; position: relative; }
-.gd-dbslogin .gd-x { position: absolute; top: .8em; left: .9em; }
-.gd-loginbox { background: #fff; border-radius: 4px; }
-.gd-loginbox .gd-field { margin: 0; border: 0; border-bottom: 1px solid #e5e7eb; border-radius: 0; }
-.gd-forgot { color: #d1d5db !important; margin: .2em 0; }
-.gd-forgot.center { text-align: center; margin-top: 1em; }
-.gd-loginrow { display: flex; gap: .4em; align-items: stretch; }
-.gd-loginrow .gd-btn { flex: 1; margin: 0; border-radius: 3px; background: #ef3b3b; border-color: #ef3b3b; }
-.gd-faceid { display: grid; place-items: center; width: 2.6em; border: 1.5px solid #fff; border-radius: 3px; font-size: 1.1em; }
 .gd-btn.outline { margin: 0; border-radius: 3px; background: transparent; color: #fff; border-color: #fff; }
-.gd-dbsbanner { background: linear-gradient(160deg, #e11d2e, #b91c1c); color: #fff; padding: .8em .9em; display: grid; grid-template-columns: 1fr auto; gap: .3em; }
-.gd-dbsbanner b, .gd-dbsbanner small { grid-column: 1 / -1; color: #fff; }
-.gd-logout { border: 1px solid #fff; border-radius: 999px; padding: 0 .6em; font-size: .8em; }
-.gd-subtabs { display: flex; border-bottom: 1px solid #e5e7eb; }
-.gd-subtabs span { flex: 1; text-align: center; padding: .55em .2em; font-size: .88em; color: #6b7280; }
-.gd-subtabs .on { color: #111827; font-weight: 700; border-bottom: 2.5px solid #e11d2e; }
-.gd-balance { padding: .8em .9em; display: flex; flex-direction: column; }
-.gd-balance b { font-size: 1.5em; }
 .gd-top.center { justify-content: center; }
-.gd-label { margin: .7em .9em .2em; font-size: .78em; font-weight: 700; color: #6b7280; letter-spacing: .03em; }
-.gd-verified { margin: .2em .9em .4em; display: flex; flex-direction: column; gap: .1em; }
-.gd-verified b { font-size: 1.15em; }
-.gd-avatar { display: inline-grid; place-items: center; width: 1.9em; height: 1.9em; border-radius: 50%; background: #7c3aed; color: #fff; font-size: .7em; font-weight: 700; }
-.gd-tag { font-size: .7em; color: #e11d2e; border: 1px solid #e11d2e; border-radius: 4px; padding: .05em .3em; }
-.gd-darkbar { margin: .3em 0; padding: .6em .9em; background: #1e293b; color: #fff; display: flex; flex-direction: column; }
-.gd-darkbar small { color: #cbd5e1 !important; }
-.gd-darkbar span { display: flex; justify-content: space-between; font-size: 1.35em; }
-.gd-limit { display: flex; justify-content: space-between; padding: .3em .9em .5em; background: #f8fafc; }
-.gd-sgqr { background: #fff; padding: .7em .8em; border-radius: 10px; display: flex; flex-direction: column; align-items: center; gap: .4em; }
-.gd-sgqrlogo { align-self: flex-start; color: #db2777 !important; font-weight: 800; }
-.gd-scanbar { background: #ec4899; color: #fff !important; font-weight: 800; padding: .1em .8em; }
-.gd-camera.light { background: #e5e7eb; }
 .gd-dial { flex: 1; background: linear-gradient(180deg, #1f2937, #111827); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .4em; text-align: center; padding: 1em; }
 .gd-dial b { font-size: 1.6em; letter-spacing: .03em; }
 .gd-dial small { color: #d1d5db !important; }
 .gd-ivr { margin: 1em 0; padding: .7em .9em; border-radius: 12px; background: rgb(255 255 255 / .1); }
 .gd-callbtn { display: grid; place-items: center; width: 2.8em; height: 2.8em; border-radius: 50%; background: #16a34a; font-size: 1.4em; margin-top: .5em; }
-.gd-camera { flex: 1; background: #1f2937; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .8em; }
-.gd-camera small { color: #e5e7eb; }
-.gd-qrframe { padding: .8em; border: 3px solid #fff; border-radius: 14px; }
-.gd-qr { display: block; width: 6.5em; height: 6.5em; background:
-  conic-gradient(#111 25%, #fff 0 50%, #111 0 75%, #fff 0) 0 0 / 1.3em 1.3em, #fff; border: .45em solid #fff; outline: .35em solid #111; }
 
 /* The button to press: a glow and a pointing hand. */
+/* Real screenshots: the picture sets the phone's shape; spots are the buttons laid over it. */
+.gd-phone.photo { height: auto; width: min(250px, 27vh, 72vw); aspect-ratio: auto; }
+.gd-phone.photo .gd-screen { height: auto; }
+.gd-shot { position: relative; width: 100%; overflow: hidden; }
+.gd-shot img { display: block; width: 100%; height: auto; }
+.gd-spot, .gd-spot.gd-glow { position: absolute; border-radius: 10px; }
+.gd-wm { position: absolute; inset: -30%; display: flex; flex-wrap: wrap; align-content: space-around; justify-content: space-around; gap: 2.5em 1.5em; transform: rotate(-30deg); pointer-events: none; }
+.gd-wm span { font-size: 1.05em; font-weight: 800; letter-spacing: .05em; color: rgb(15 118 110 / .22); white-space: nowrap; text-shadow: 0 0 2px rgb(255 255 255 / .5); }
+.gd-wmwarn { position: absolute; left: 6%; right: 6%; bottom: 12%; padding: .6em; border-radius: 10px; background: rgb(15 118 110 / .92); color: #fff; font-weight: 700; text-align: center; line-height: 1.35; pointer-events: none; }
 .gd-glow { position: relative; z-index: 1; outline: 3px solid #f59e0b; outline-offset: 2px; border-radius: 12px; animation: gd-glow 1.2s ease-in-out infinite; cursor: pointer; }
 @keyframes gd-glow { 0%, 100% { box-shadow: 0 0 0 0 rgb(245 158 11 / .7); } 50% { box-shadow: 0 0 0 9px rgb(245 158 11 / 0); } }
 .gd-hand { position: absolute; z-index: 2; font-size: 2.6em; pointer-events: none; transform: translate(-30%, 0); animation: gd-hand 1.2s ease-in-out infinite; filter: drop-shadow(0 2px 3px rgb(0 0 0 / .35)); }

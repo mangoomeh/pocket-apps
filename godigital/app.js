@@ -39,9 +39,9 @@ const UI = {
   textSize: { en: 'Bigger text', zh: '大字体', my: 'စာလုံးကြီး' },
   autoRead: { en: 'Read each step aloud', zh: '自动朗读每一步', my: 'အဆင့်တိုင်းကို အသံဖြင့် ဖတ်ပေးရန်' },
   disclaimer: {
-    en: 'Pictures are simplified. Real apps change their look and may look different on your phone. Not made by, or linked to, Grab, FairPrice or DBS. For banking help, always use the bank\'s own app, website or the number on your card.',
-    zh: '图片经过简化。真正的应用程序会更新外观，在你的手机上可能不一样。本应用与 Grab、FairPrice 和 DBS 无关。银行问题请只用银行自己的应用程序、网站或卡背面的电话。',
-    my: 'ပုံများကို ရိုးရှင်းအောင် ပြုလုပ်ထားပါသည်။ အမှန်တကယ် အက်ပ်များ၏ ပုံစံ ပြောင်းလဲနိုင်ပြီး သင့်ဖုန်းပေါ်တွင် ကွဲပြားနိုင်ပါသည်။ Grab၊ FairPrice သို့မဟုတ် DBS နှင့် မသက်ဆိုင်ပါ။ ဘဏ်ဆိုင်ရာ အကူအညီအတွက် ဘဏ်၏ ကိုယ်ပိုင်အက်ပ်၊ ဝက်ဘ်ဆိုက် သို့မဟုတ် ကတ်ပေါ်ရှိ နံပါတ်ကိုသာ သုံးပါ။',
+    en: 'Practice pictures only. The DBS pictures are DBS\'s own screenshots from its help pages and guide; the others are simplified drawings. Real apps change their look and may look different on your phone. Not made by, or linked to, Grab, FairPrice or DBS. Never type your PIN or passwords here. For banking help, always use the bank\'s own app, website or the number on your card.',
+    zh: '图片只供练习。DBS 的图片是 DBS 帮助网页和指南里的截图，其他是简化的图画。真正的应用程序会更新外观，在你的手机上可能不一样。本应用与 Grab、FairPrice 和 DBS 无关。绝对不要在这里输入密码或 PIN。银行问题请只用银行自己的应用程序、网站或卡背面的电话。',
+    my: 'လေ့ကျင့်ရန် ပုံများသာ ဖြစ်ပါသည်။ DBS ပုံများမှာ DBS ၏ အကူအညီစာမျက်နှာနှင့် လမ်းညွှန်မှ ဖန်သားပြင်ပုံများ ဖြစ်ပြီး ကျန်ပုံများကို ရိုးရှင်းအောင် ရေးဆွဲထားပါသည်။ PIN သို့မဟုတ် စကားဝှက်ကို ဤနေရာတွင် ဘယ်တော့မှ မရိုက်ပါနှင့်။ အမှန်တကယ် အက်ပ်များ၏ ပုံစံ ပြောင်းလဲနိုင်ပြီး သင့်ဖုန်းပေါ်တွင် ကွဲပြားနိုင်ပါသည်။ Grab၊ FairPrice သို့မဟုတ် DBS နှင့် မသက်ဆိုင်ပါ။ ဘဏ်ဆိုင်ရာ အကူအညီအတွက် ဘဏ်၏ ကိုယ်ပိုင်အက်ပ်၊ ဝက်ဘ်ဆိုက် သို့မဟုတ် ကတ်ပေါ်ရှိ နံပါတ်ကိုသာ သုံးပါ။',
   },
 };
 const ui = (key, ...args) => {
@@ -138,7 +138,7 @@ function renderStep() {
   $('guide').innerHTML = `${head}
     <div class="gd-dots" aria-label="${esc(ui('stepOf', step + 1, n))}">${lesson.steps.map((_, i) => `<span class="${i < step ? 'past' : i === step ? 'now' : ''}"></span>`).join('')}</div>
     <div class="gd-stage">
-      <div class="gd-phone" style="--app:${app.color}" aria-hidden="true"><div class="gd-screen" id="screen">${renderScreen(s)}</div></div>
+      <div class="gd-phone ${s.shot ? 'photo' : ''}" style="--app:${app.color}" aria-hidden="true"><div class="gd-screen" id="screen">${renderScreen(s)}</div></div>
     </div>
     <div class="card gd-caption">
       <p class="gd-stepno">${esc(ui('stepOf', step + 1, n))}</p>
@@ -168,8 +168,10 @@ function markTarget(id) {
   const place = () => {
     const a = screen.getBoundingClientRect();
     const b = target.getBoundingClientRect();
-    hand.style.left = `${b.left - a.left + Math.min(b.width * 0.6, b.width - 8)}px`;
-    hand.style.top = `${b.top - a.top + b.height * 0.55 + screen.scrollTop}px`;
+    // Keep the whole hand on the screen, even for buttons at its edge.
+    const h = hand.offsetHeight || 40;
+    hand.style.left = `${Math.min(b.left - a.left + Math.min(b.width * 0.6, b.width - 8), a.width - h * 0.75)}px`;
+    hand.style.top = `${Math.min(b.top - a.top + b.height * 0.55, a.height - h) + screen.scrollTop}px`;
   };
   screen.append(hand);
   place();

@@ -3,7 +3,7 @@
 // The file list and VERSION are written by tools/build-sw.js (`npm run sw`); don't edit them by hand.
 
 // <files>
-const VERSION = "055d0ba8966e";
+const VERSION = "34208ff9ae59";
 const FILES = [
   "./",
   "petty-cash/",
@@ -112,6 +112,27 @@ const FILES = [
   "learnai/manifest.webmanifest",
   "godigital/app.js",
   "godigital/manifest.webmanifest",
+  "godigital/shots/dbs-addbill.jpg",
+  "godigital/shots/dbs-addbillreview.jpg",
+  "godigital/shots/dbs-amount.jpg",
+  "godigital/shots/dbs-balance.jpg",
+  "godigital/shots/dbs-billreview.jpg",
+  "godigital/shots/dbs-bills.jpg",
+  "godigital/shots/dbs-billsaved.jpg",
+  "godigital/shots/dbs-billsent.jpg",
+  "godigital/shots/dbs-home.jpg",
+  "godigital/shots/dbs-login.jpg",
+  "godigital/shots/dbs-paybill.jpg",
+  "godigital/shots/dbs-paynow.jpg",
+  "godigital/shots/dbs-paynowto.jpg",
+  "godigital/shots/dbs-paytransfer.jpg",
+  "godigital/shots/dbs-review.jpg",
+  "godigital/shots/dbs-scan.jpg",
+  "godigital/shots/dbs-scanpay.jpg",
+  "godigital/shots/dbs-scanreview.jpg",
+  "godigital/shots/dbs-scansent.jpg",
+  "godigital/shots/dbs-sent.jpg",
+  "godigital/shots/dbs-start.jpg",
   "chat/app.js",
   "chat/manifest.webmanifest",
   "chat/store.js"
