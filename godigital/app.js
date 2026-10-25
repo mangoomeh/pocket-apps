@@ -168,10 +168,23 @@ function markTarget(id) {
   const place = () => {
     const a = screen.getBoundingClientRect();
     const b = target.getBoundingClientRect();
-    // Keep the whole hand on the screen, even for buttons at its edge.
     const h = hand.offsetHeight || 40;
-    hand.style.left = `${Math.min(b.left - a.left + Math.min(b.width * 0.6, b.width - 8), a.width - h * 0.75)}px`;
-    hand.style.top = `${Math.min(b.top - a.top + b.height * 0.55, a.height - h) + screen.scrollTop}px`;
+    let left = b.left - a.left + Math.min(b.width * 0.6, b.width - 8);
+    let top = b.top - a.top + b.height * 0.55;
+    if (screen.querySelector('.gd-shot')) {
+      // On a real screenshot, point from just below the button so its label stays readable,
+      // or from above, pointing down, when it's at the bottom of the screen.
+      left = b.left - a.left + (b.width > a.width / 2 ? b.width * 0.7 : b.width / 2);
+      top = b.bottom - a.top - h * 0.2;
+      if (top + h > a.height) {
+        hand.textContent = '👇';
+        hand.classList.add('down');
+        top = b.top - a.top - h * 0.8;
+      }
+    }
+    // Keep the whole hand on the screen, even for buttons at its edge.
+    hand.style.left = `${Math.min(left, a.width - h * 0.75)}px`;
+    hand.style.top = `${Math.min(top, a.height - h) + screen.scrollTop}px`;
   };
   screen.append(hand);
   place();

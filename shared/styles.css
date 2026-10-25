@@ -1729,7 +1729,8 @@ button.danger { color: var(--bad); }
 .gd-phone.photo .gd-screen { height: auto; }
 .gd-shot { position: relative; width: 100%; overflow: hidden; }
 .gd-shot img { display: block; width: 100%; height: auto; }
-.gd-spot, .gd-spot.gd-glow { position: absolute; border-radius: 10px; }
+/* The ring hugs the real button: drawn just outside it, so it doesn't hide the label. */
+.gd-spot, .gd-spot.gd-glow { position: absolute; border-radius: 8px; outline-width: 2.5px; outline-offset: 1px; }
 .gd-wm { position: absolute; inset: -30%; display: flex; flex-wrap: wrap; align-content: space-around; justify-content: space-around; gap: 2.5em 1.5em; transform: rotate(-30deg); pointer-events: none; }
 .gd-wm span { font-size: 1.05em; font-weight: 800; letter-spacing: .05em; color: rgb(15 118 110 / .22); white-space: nowrap; text-shadow: 0 0 2px rgb(255 255 255 / .5); }
 .gd-wmwarn { position: absolute; left: 6%; right: 6%; bottom: 12%; padding: .6em; border-radius: 10px; background: rgb(15 118 110 / .92); color: #fff; font-weight: 700; text-align: center; line-height: 1.35; pointer-events: none; }
@@ -1737,6 +1738,8 @@ button.danger { color: var(--bad); }
 @keyframes gd-glow { 0%, 100% { box-shadow: 0 0 0 0 rgb(245 158 11 / .7); } 50% { box-shadow: 0 0 0 9px rgb(245 158 11 / 0); } }
 .gd-hand { position: absolute; z-index: 2; font-size: 2.6em; pointer-events: none; transform: translate(-30%, 0); animation: gd-hand 1.2s ease-in-out infinite; filter: drop-shadow(0 2px 3px rgb(0 0 0 / .35)); }
 @keyframes gd-hand { 0%, 100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+.gd-hand.down { animation-name: gd-hand-down; }
+@keyframes gd-hand-down { 0%, 100% { translate: 0 0; } 50% { translate: 0 6px; } }
 @media (prefers-reduced-motion: reduce) { .gd-glow, .gd-hand, .gd-spin { animation: none; } }
 
 .gd-caption { margin-top: .8rem; }
