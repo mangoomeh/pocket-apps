@@ -3,7 +3,7 @@
 // The file list and VERSION are written by tools/build-sw.js (`npm run sw`); don't edit them by hand.
 
 // <files>
-const VERSION = "af949f4b391c";
+const VERSION = "7807c8517ba2";
 const FILES = [
   "./",
   "petty-cash/",
@@ -18,6 +18,7 @@ const FILES = [
   "fengshui/",
   "learnai/",
   "godigital/",
+  "mergetactics/",
   "chat/",
   "manifest.webmanifest",
   "shared/backup.js",
@@ -35,6 +36,7 @@ const FILES = [
   "src/godigital.js",
   "src/learnai.js",
   "src/lunar.js",
+  "src/mergetactics.js",
   "src/onchain.js",
   "src/places.js",
   "src/plangrid.js",
@@ -63,6 +65,8 @@ const FILES = [
   "icons/home-apple.png",
   "icons/learnai-192.png",
   "icons/learnai-apple.png",
+  "icons/mergetactics-192.png",
+  "icons/mergetactics-apple.png",
   "icons/petty-cash-192.png",
   "icons/petty-cash-apple.png",
   "icons/security-192.png",
@@ -133,6 +137,8 @@ const FILES = [
   "godigital/shots/dbs-scansent.jpg",
   "godigital/shots/dbs-sent.jpg",
   "godigital/shots/dbs-start.jpg",
+  "mergetactics/app.js",
+  "mergetactics/manifest.webmanifest",
   "chat/app.js",
   "chat/manifest.webmanifest",
   "chat/store.js"

@@ -32,7 +32,7 @@ jobs:
       - name: Collect site files
         run: |
           mkdir _site
-          cp -r index.html manifest.webmanifest sw.js icons shared src petty-cash sushiro calc84 wallets bazi fengshui learnai godigital chat split trip security ziwei _site/
+          cp -r index.html manifest.webmanifest sw.js icons shared src petty-cash sushiro calc84 wallets bazi fengshui learnai godigital mergetactics chat split trip security ziwei _site/
       - name: Collect security news and CISA's exploited list
         run: node tools/build-feeds.js _site/security/data.json
         env:

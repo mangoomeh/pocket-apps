@@ -36,7 +36,7 @@ test('other files are refused with a clear message', () => {
 test('every app\'s storage key is backed up', async () => {
   const { readFileSync, readdirSync } = await import('node:fs');
   const used = new Set();
-  for (const dir of ['petty-cash', 'sushiro', 'split', 'trip', 'calc84', 'wallets', 'security', 'bazi', 'ziwei', 'fengshui', 'learnai', 'godigital', 'chat']) {
+  for (const dir of ['petty-cash', 'sushiro', 'split', 'trip', 'calc84', 'wallets', 'security', 'bazi', 'ziwei', 'fengshui', 'learnai', 'godigital', 'mergetactics', 'chat']) {
     for (const f of readdirSync(new URL(`../${dir}/`, import.meta.url))) {
       if (!/\.(js|html)$/.test(f)) continue;
       const text = readFileSync(new URL(`../${dir}/${f}`, import.meta.url), 'utf8');

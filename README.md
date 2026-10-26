@@ -354,6 +354,23 @@ switch.
 - Grab and FairPrice are still simplified drawings, until there are real screenshots for them. The app says it isn't
   made by or linked to Grab, FairPrice or DBS.
 
+### ⚔️ Merge Tactics Coach (`mergetactics/`)
+
+A guide to Merge Tactics, Clash Royale's 4-player auto-battler mode, kept to the latest season (now Season 11,
+October 2026).
+
+- **Learn:** ten short lessons (the goal, deploy and battle phases, Golden Elixir and the shop, merging, team size,
+  traits, Rulers and quests, Supers, equipment, modifiers and leagues), and a **merge practice** board: a
+  simplified deploy phase with a 3-card shop, 4 Elixir a round, a bench of 5 and a team that grows from 2 to 6,
+  with goals that walk you through buying, placing, merging and switching on a trait.
+- **Troops:** the current pool of 29 troops with cost, trait, role and what each does, filtered by trait.
+- **Planner:** pick a team and see which traits switch on, how many more troops reach the next tier, and where to
+  put each troop (tanks in front, ranged at the back); with four team ideas to start from. Saved on the device.
+- **Tips:** strategy, the Rulers, this month's modifiers by league, and what changed lately.
+- **Data** lives in `src/mergetactics.js` (with `UPDATED`), from Supercell's release notes plus the community
+  trackers seemeta.com and mergetacticsbuild.com. Update it when the monthly changes land. Fan-made; not made by
+  or linked to Supercell.
+
 ### 🦙 Local Chat (`chat/`)
 
 A chat app for your own AI models running in [Ollama](https://ollama.com) on your PC. The page talks to Ollama

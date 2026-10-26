@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#b45309">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Merge Tactics Coach</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="../icons/mergetactics-apple.png">
+  <link rel="icon" href="../icons/mergetactics-192.png">
+  <script type="module" src="../shared/pwa.js"></script>
+  <link rel="stylesheet" href="../shared/styles.css">
+</head>
+<body class="theme-mergetactics">
+  <header class="balance">
+    <a class="back" href="../">‹ Apps</a>
+    <p class="eyebrow" id="updated"></p>
+    <p class="big">Merge Tactics Coach</p>
+    <p class="muted">Learn the Clash Royale auto-battler, then plan your team</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="learn" aria-selected="true">Learn</button>
+    <button role="tab" data-tab="troops">Troops</button>
+    <button role="tab" data-tab="planner">Planner</button>
+    <button role="tab" data-tab="tips">Tips</button>
+  </nav>
+
+  <main>
+    <section role="tabpanel" data-panel="learn">
+      <div id="lessons"></div>
+      <div class="card" id="practice"></div>
+    </section>
+    <section role="tabpanel" data-panel="troops" hidden>
+      <div class="chips mt-filter" id="troop-filter"></div>
+      <div id="troop-list"></div>
+    </section>
+    <section role="tabpanel" data-panel="planner" hidden>
+      <div id="planner"></div>
+    </section>
+    <section role="tabpanel" data-panel="tips" hidden>
+      <div id="tips"></div>
+    </section>
+    <p class="hint mt-foot">Fan-made guide, not made by or linked to Supercell. Merge Tactics changes every month; this guide follows the latest release notes, and community trackers for the numbers. Check the game when something looks different.</p>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
