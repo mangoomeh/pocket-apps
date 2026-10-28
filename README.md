@@ -208,6 +208,12 @@ reads public blockchain data: there's no wallet connection and nothing to sign.
 
 Works out a Four Pillars of Destiny (八字) chart from a birth date and time.
 
+- **For beginners:** a one-minute “New to BaZi? Start here” guide (the eight characters, the five elements and how
+  they feed each other, the day master, balance and luck), open until you close it. The header says who you are in
+  plain words (“💧 Yang Water: the ocean”), the ten gods use everyday names in English (Peer, Rival, Enjoyment,
+  Expression, Windfall, Income, Pressure, Authority, Intuition, Support; the traditional name shows when tapped),
+  elements carry emojis, every clash and combination says what it means, and the technical details are folded away.
+
 - **Four Pillars:** the year, month, day and hour stems and branches, coloured by element, with each one's ten god
   (relative to the day master), hidden stems, 纳音 and life stage, in labelled rows. Tap any label or value for a
   plain-English explanation. If the birth time is unknown, the hour pillar is
@@ -260,6 +266,9 @@ Works out a Four Pillars of Destiny (八字) chart from a birth date and time.
 Purple Star Astrology (紫微斗数): the 12 palaces of life and the stars in them, from the lunar date and two-hour period
 of birth. A separate system from BaZi; people often use both.
 
+- **For beginners:** an “At a glance” card in plain words (your main star, the 10-year chapter you're in, this year,
+  and where good fortune and the area to watch fall), a one-minute guide to reading the 12 boxes, English nicknames
+  under the main stars (Emperor, Wolf…), and the method folded away.
 - **Birth details** as in the BaZi app: a Western or lunar (农历) date, the time, gender and birthplace. The time is
   converted with the birthplace's time zone as it was on that date, with optional true solar time and the 23:00 rule,
   using the same code as BaZi (`src/bazi.js`), so both apps describe the same moment. A birth time is required.

@@ -36,7 +36,10 @@ const lang = () => (state.lang === 'zh' ? 'zh' : 'en');
 const t = (en, zh) => (lang() === 'zh' ? zh : en);
 const tl = () => (lang() === 'zh' ? 'zh' : 'en');
 const cityName = (n) => (lang() === 'zh' ? CITY_ZH[n] || n : n);
-const GOD_EN_SHORT = ['Friend', 'Rob', 'Eating', 'Hurting', 'Ind. Wealth', 'Wealth', '7 Killings', 'Officer', 'Ind. Res.', 'Resource'];
+// Everyday names for the ten gods, for people new to BaZi; the traditional names appear when tapped.
+const GOD_EN_SHORT = ['Peer', 'Rival', 'Enjoyment', 'Expression', 'Windfall', 'Income', 'Pressure', 'Authority', 'Intuition', 'Support'];
+const EL_EMOJI = ['🌳', '🔥', '⛰️', '⚙️', '💧'];
+const elWord = (e) => `${EL_EMOJI[e]} ${t(ELEMENTS[e].en, ELEMENTS[e].zh)}`;
 
 // ---- State ---------------------------------------------------------------------------------------
 
@@ -253,11 +256,13 @@ function render() {
     return;
   }
   const names = chart.pillars.map((p) => (p.missing ? '··' : p.name));
-  $('headline').textContent = names.join(' ');
-  $('headline').classList.add('cjk');
   const dmz = chart.dayMaster;
-  $('subline').textContent = `${f.name ? `${f.name} · ` : ''}${t(`${STEMS[dmz]} ${isYang(dmz) ? 'Yang' : 'Yin'} ${ELEMENTS[stemElement(dmz)].en} day master · Year of the ${chart.animal}`,
-    `${STEMS[dmz]}${isYang(dmz) ? '阳' : '阴'}${ELEMENTS[stemElement(dmz)].zh}日主 · 属${ANIMALS_ZH[chart.pillars[3].branch]}`)}`;
+  const dme = stemElement(dmz);
+  $('headline').textContent = t(`${EL_EMOJI[dme]} ${isYang(dmz) ? 'Yang' : 'Yin'} ${ELEMENTS[dme].en}: ${DM_NOTES[dmz].split(':')[0]}`,
+    `${EL_EMOJI[dme]} ${isYang(dmz) ? '阳' : '阴'}${ELEMENTS[dme].zh}：${DM_PROFILES_ZH[dmz].image}`);
+  $('headline').classList.remove('cjk');
+  $('subline').textContent = `${f.name ? `${f.name} · ` : ''}${t(`Year of the ${chart.animal}`, `属${ANIMALS_ZH[chart.pillars[3].branch]}`)} · ${names.join(' ')}`;
+  renderLegends();
   renderPillars();
   $('explain').textContent = t('Tap any label or value to see what it means.', '点任何标签或数值查看解释。');
   renderDayMaster();
@@ -274,12 +279,12 @@ function render() {
 }
 
 const ROWS = [
-  ['god', '十神', 'Ten god', 'How each stem relates to you, the day master (日主). It depends on whether the stem is your own element, the one you produce (Output), the one you control (Wealth), the one that controls you (Officer) or the one that produces you (Resource). Same or opposite yin/yang picks which of each pair.'],
-  ['stem', '天干', 'Stem', 'The heavenly stem: the visible, outward side of the pillar. Its colour shows its element.'],
-  ['branch', '地支', 'Branch', 'The earthly branch: the root of the pillar, with its animal. Its colour shows its main element.'],
-  ['hidden', '藏干', 'Hidden', 'Hidden stems: the stems stored inside each branch, main one first, each with its ten god. The ten god shown for a branch comes from its main hidden stem.'],
-  ['nayin', '纳音', 'Na Yin', 'A poetic element given to each of the 60 stem–branch pairs, such as 海中金 “Gold in the Sea”. It is a secondary reading, mostly used for the year pillar.'],
-  ['stage', '长生', 'Stage', 'The twelve life stages (十二长生): how strong your day master is in each branch, on a cycle from Birth through Peak to Tomb and round again. A stage like 死 (Death) only means the day master is weak in that branch. It is not a prediction.'],
+  ['god', '十神', 'Relation to you', 'How each stem relates to you, the day master (日主). It depends on whether the stem is your own element, the one you produce (Output), the one you control (Wealth), the one that controls you (Officer) or the one that produces you (Resource). Same or opposite yin/yang picks which of each pair.'],
+  ['stem', '天干', 'Top (stem)', 'The heavenly stem: the visible, outward side of the pillar. Its colour shows its element.'],
+  ['branch', '地支', 'Bottom (branch)', 'The earthly branch: the root of the pillar, with its animal. Its colour shows its main element.'],
+  ['hidden', '藏干', 'Hidden inside', 'Hidden stems: the stems stored inside each branch, main one first, each with its ten god. The ten god shown for a branch comes from its main hidden stem.'],
+  ['nayin', '纳音', 'Poetic element', 'A poetic element given to each of the 60 stem–branch pairs, such as 海中金 “Gold in the Sea”. It is a secondary reading, mostly used for the year pillar.'],
+  ['stage', '长生', 'Your strength', 'The twelve life stages (十二长生): how strong your day master is in each branch, on a cycle from Birth through Peak to Tomb and round again. A stage like 死 (Death) only means the day master is weak in that branch. It is not a prediction.'],
 ];
 const GOD_NOTES = [
   'same element and yin/yang as you: peers, siblings, independence.',
@@ -341,7 +346,7 @@ function explain(code) {
     case 'god': {
       const d = GOD_DETAILS[n];
       const where = b ? ` Here it sits in your ${PILLAR_AREAS[b].label.toLowerCase()}, which covers ${PILLAR_AREAS[b].area}.` : '';
-      return `<strong>${TEN_GODS[n].zh} ${TEN_GODS[n].en}</strong>: ${GOD_NOTES[n]}<br>At its best: ${d.plus}. Watch for ${d.minus}. In life: ${d.area}.${where}`;
+      return `<strong>${TEN_GODS[n].zh} ${TEN_GODS[n].en}</strong> (“${GOD_EN_SHORT[n]}” here): ${GOD_NOTES[n]}<br>At its best: ${d.plus}. Watch for ${d.minus}. In life: ${d.area}.${where}`;
     }
     case 'stem': return `<strong>${STEMS[n]} ${STEM_PINYIN[n]}</strong>: ${isYang(n) ? 'Yang' : 'Yin'} ${ELEMENTS[stemElement(n)].en}.`;
     case 'branch': return `<strong>${BRANCHES[n]} ${BRANCH_PINYIN[n]}</strong>: the ${ANIMALS[n]}, ${ELEMENTS[branchElement(n)].en}. Hidden stems: ${HIDDEN_STEMS[n].map((h) => STEMS[h]).join(' ')}.`;
@@ -380,7 +385,9 @@ function renderPillars() {
     cells.branch.push(`<div class="pc${day}">${btn(`branch:${p.branch}`, BRANCHES[p.branch] + py(BRANCH_PINYIN[p.branch]), `glyph ${elClass(branchElement(p.branch))}`)}</div>`);
     cells.hidden.push(`<div class="pc hid${day}">${p.hidden.map((h) => btn(`god:${h.god}:${p.key}`, `<span class="${elClass(stemElement(h.stem))}">${STEMS[h.stem]}</span><small>${godShort(h.god)}</small>`)).join('')}</div>`);
     cells.nayin.push(`<div class="pc sub${day}">${btn(`nayin:${ni}`, L === 'en' ? NAYIN_EN[ni] : NAYIN[ni])}</div>`);
-    cells.stage.push(`<div class="pc sub${day}">${btn(`stage:${p.stage}`, L === 'en' ? LIFE_STAGES_EN[p.stage] : LIFE_STAGES[p.stage])}</div>`);
+    // In English, a plain strength word; the stage's traditional name shows when tapped.
+    const strength = STAGE_STRENGTH[p.stage];
+    cells.stage.push(`<div class="pc sub${day}">${btn(`stage:${p.stage}`, L === 'en' ? strength[0].toUpperCase() + strength.slice(1) : LIFE_STAGES[p.stage])}</div>`);
   }
   $('pillars').innerHTML = `<div class="pc"></div>${heads.join('')}`
     + ROWS.map(([k, zh, en]) => `<div class="pc rl">${btn(`row:${k}`, L === 'zh' ? zh : `${en}<small>${zh}</small>`)}</div>${cells[k].join('')}`).join('');
@@ -395,22 +402,34 @@ function renderDayMaster() {
     const z = (k) => ELEMENTS[(e + k) % 5].zh;
     $('dm').innerHTML = `<span class="dm-glyph ${elClass(e)}">${STEMS[dm]}</span>
       <span><strong>${isYang(dm) ? '阳' : '阴'}${ELEMENTS[e].zh}</strong>：像${DM_PROFILES_ZH[dm].image}，${DM_KEYWORDS_ZH[dm].replace(/ · /g, '、')}。<br>
-      <small>食伤：${z(1)} · 财：${z(2)} · 官杀：${z(3)} · 印：${z(4)}</small></span>`;
+      <small>${EL_EMOJI[(e + 1) % 5]}${z(1)}是你创造的（食伤）· ${EL_EMOJI[(e + 2) % 5]}${z(2)}是你赚取的（财）· ${EL_EMOJI[(e + 3) % 5]}${z(3)}推动你（官杀）· ${EL_EMOJI[(e + 4) % 5]}${z(4)}支持你（印）</small></span>`;
     return;
   }
   $('dm').innerHTML = `<span class="dm-glyph ${elClass(e)}">${STEMS[dm]}</span>
     <span><strong>${isYang(dm) ? 'Yang' : 'Yin'} ${ELEMENTS[e].en}</strong> (${STEM_PINYIN[dm]}): ${DM_NOTES[dm]}.<br>
-    <small>Output: ${produces} · Wealth: ${controls} · Officer: ${controlledBy} · Resource: ${producedBy}</small></span>`;
+    <small>${EL_EMOJI[(e + 1) % 5]} ${produces} is what you create · ${EL_EMOJI[(e + 2) % 5]} ${controls} what you earn · ${EL_EMOJI[(e + 3) % 5]} ${controlledBy} what pushes you · ${EL_EMOJI[(e + 4) % 5]} ${producedBy} what supports you</small></span>`;
 }
 
 function renderElements() {
   const max = Math.max(...chart.weighted, 1);
   $('elements').innerHTML = ELEMENTS.map((el, i) => `<li>
-      <span class="el-name ${elClass(i)}">${lang() === 'zh' ? el.zh : `${el.en} ${el.zh}`}</span>
+      <span class="el-name ${elClass(i)}">${EL_EMOJI[i]} ${lang() === 'zh' ? el.zh : el.en}</span>
       <span class="bar"><span class="${elClass(i)}" style="width:${(chart.weighted[i] / max) * 100}%"></span></span>
       <span class="el-num"><strong>${chart.counts[i]}</strong> <small>${chart.weighted[i].toFixed(1)}</small></span>
     </li>`).join('');
 }
+
+const INTERACTION_PLAIN = {
+  'stem-combo': ['These two pull together: an easy bond between those parts of life.', '两者相合：这两方面容易配合。'],
+  'stem-clash': ['These two push against each other: tension that drives change.', '两者相冲：有张力，容易带来变化。'],
+  combo: ['A close partnership between these pillars.', '这两柱关系紧密，容易互相帮忙。'],
+  clash: ['Opposites: expect movement and change in these areas.', '相冲：这两方面常有变动。'],
+  harm: ['A small, quiet friction between these areas.', '相害：小而暗的摩擦。'],
+  punish: ['Friction that tends to repeat: worth handling patiently.', '相刑：容易反复的摩擦，宜耐心处理。'],
+  'self-punish': ['A habit of being hard on yourself in this area.', '自刑：在这方面容易对自己太苛刻。'],
+  trio: ['Three pillars team up and strengthen this element a lot.', '三合：三柱联手，大大加强这个五行。'],
+  meeting: ['Three pillars gather and make this element very strong.', '三会：三柱汇聚，使这个五行非常强。'],
+};
 
 function renderInteractions() {
   const short = lang() === 'zh' ? ['时', '日', '月', '年'] : ['Hour', 'Day', 'Month', 'Year'];
@@ -419,7 +438,7 @@ function renderInteractions() {
     const [en, zh] = INTERACTION_NAMES[x.name];
     const label = lang() === 'zh' ? `${x.chars}${zh}` : `${x.chars} ${en}`;
     const el = x.element != null ? ` → ${lang() === 'zh' ? ELEMENTS[x.element].zh : ELEMENTS[x.element].en}` : '';
-    return `<li><strong>${esc(label)}</strong>${el} <small>(${where})</small></li>`;
+    return `<li><strong>${esc(label)}</strong>${el} <small>(${where})</small><br>${esc(t(INTERACTION_PLAIN[x.name][0], INTERACTION_PLAIN[x.name][1]))}</li>`;
   });
   $('interactions').innerHTML = items.length ? items.join('') : `<li>${t('No combinations or clashes between these pillars.', '四柱之间没有合冲。')}</li>`;
 }
@@ -492,18 +511,21 @@ function renderSummary(f) {
   const labels = PILLAR_LABELS[lang()];
   const pillarsHtml = order.map((k) => {
     const p = byKey[k];
-    if (p.missing) return `<div class="sum-p missing"><small>${labels[k]}</small><b>?</b><b>?</b></div>`;
-    return `<div class="sum-p${k === 'day' ? ' is-day' : ''}"><small>${labels[k]}</small><b class="${elClass(stemElement(p.stem))}">${STEMS[p.stem]}</b><b class="${elClass(branchElement(p.branch))}">${BRANCHES[p.branch]}</b></div>`;
+    const about = { year: t('roots', '根基'), month: t('work', '事业'), day: t('you', '自己'), hour: t('later life', '晚年') }[k];
+    if (p.missing) return `<div class="sum-p missing"><small>${labels[k]}</small><small>${about}</small><b>?</b><b>?</b></div>`;
+    return `<div class="sum-p${k === 'day' ? ' is-day' : ''}"><small>${labels[k]}</small><small class="sum-about">${about}</small><b class="${elClass(stemElement(p.stem))}">${STEMS[p.stem]}</b><b class="${elClass(branchElement(p.branch))}">${BRANCHES[p.branch]}</b>
+      <small class="sum-el">${EL_EMOJI[stemElement(p.stem)]}${EL_EMOJI[branchElement(p.branch)]}</small></div>`;
   }).join('');
   const row = (label, text, extra = '') => `<div class="sum-row"><dt>${esc(label)}</dt><dd>${extra}${esc(text)}</dd></div>`;
   $('summary').innerHTML = `<div class="card sum-hero">
       <p class="sum-name">${esc(f.name || t('Your chart', '你的命盘'))}</p>
       <div class="sum-pillars">${pillarsHtml}</div>
+      <p class="hint sum-legend">${t('The highlighted Day pillar\'s top character is you. Colours and emojis show each character\'s element.', '高亮的日柱上面那个字就是你。颜色和图标代表五行。')}</p>
     </div>
     <div class="card"><dl class="sum">${sum.lines.map((l) => row(l.label, l.text)).join('')}</dl></div>
-    <div class="card"><h2>${t('Timing', '时运')}</h2><dl class="sum">${sum.timing.map((x) => row(`${x.label} · ${x.pillar}`, x.text,
+    <div class="card"><h2>${t('Timing', '时运')}</h2><p class="hint">${t('Demanding means more effort, not bad luck; favourable means things flow more easily.', '“吃力”表示要多花力气，不是坏运；“有利”表示比较顺。')}</p><dl class="sum">${sum.timing.map((x) => row(`${x.label} · ${x.pillar}`, x.text,
       `<span class="badge fav-badge ${x.favour}">${favourText(x.favour)}</span> `)).join('')}</dl></div>
-    ${sum.stars.length ? `<div class="card"><dl class="sum">${row(t('Stars', '神煞'), sum.stars.join(t(', ', '、')))}</dl></div>` : ''}
+    ${sum.stars.length ? `<div class="card"><dl class="sum">${row(t('Lucky stars', '神煞'), symbolicStars(chart).map((x) => `${t(x.en, x.zh)}: ${t(x.note, x.noteZh)}`).join(' '))}</dl></div>` : ''}
     <p class="hint sum-more">${t('Want more?', '想看更多？')} <button class="linkish" data-go="full">${t('Full reading', '完整解读')}</button> · <button class="linkish" data-go="chart">${t('Full chart', '完整命盘')}</button> · <button class="linkish" data-go="luck">${t('Luck', '运势')}</button> · <a class="linkish" href="${esc(ziweiUrl(f))}">${t('Zi Wei Dou Shu ↗', '紫微斗数 ↗')}</a> · <button class="linkish" data-go="more">${t('Match', '合婚')}</button></p>`;
 }
 
@@ -539,11 +561,12 @@ function renderLuck() {
   const birthYear = chart.input.year;
   const startAge = esc(ageText(luck.startYears + luck.startMonthsRem / 12));
   const startYear = new Date(luck.startMs).getUTCFullYear();
-  $('luck-note').innerHTML = t(`${luck.forward ? 'Forward' : 'Backward'} from the month pillar. The first starts at age ${startAge}`
-    + ` (${startYear}), from ${luck.gapDays.toFixed(1)} days to the ${luck.forward ? 'next' : 'previous'} solar term.`
-    + `${chart.input.timeKnown ? '' : ' Without a birth time the start age is approximate.'} Tap one to see its years.`,
-  `从月柱${luck.forward ? '顺' : '逆'}排。${startAge}起运（${startYear}年），按出生到${luck.forward ? '下一个' : '上一个'}节气的${luck.gapDays.toFixed(1)}天计算。`
-    + `${chart.input.timeKnown ? '' : '没有出生时间，起运岁数是约数。'}点一步大运查看各年。`);
+  $('luck-note').innerHTML = t(`Life moves in 10-year chapters, each with its own pillar. Your first starts at age ${startAge} (${startYear}). Tap one to see its years.`
+    + ` <small>(${luck.forward ? 'Forward' : 'Backward'} from the month pillar, from ${luck.gapDays.toFixed(1)} days to the ${luck.forward ? 'next' : 'previous'} solar term.`
+    + `${chart.input.timeKnown ? '' : ' Without a birth time the start age is approximate.'})</small>`,
+  `人生每十年换一步大运。${startAge}起第一步（${startYear}年）。点一步查看各年。<small>（`
+    + `从月柱${luck.forward ? '顺' : '逆'}排。${startAge}起运（${startYear}年），按出生到${luck.forward ? '下一个' : '上一个'}节气的${luck.gapDays.toFixed(1)}天计算。`
+    + `${chart.input.timeKnown ? '' : '没有出生时间，起运岁数是约数。'}）</small>`);
   const strength = analyseStrength(chart);
   $('luck').innerHTML = luck.pillars.map((p, i) => `<button type="button" class="lp fav-${pillarFavour(strength, p.stem, p.branch)}${i === now ? ' now' : ''}" data-i="${i}" aria-pressed="${i === selectedLuck}">
       ${cell(p, `${Math.floor(p.age)}`, `${p.fromYear}`, favMark(pillarFavour(strength, p.stem, p.branch)))}</button>`).join('');
@@ -787,6 +810,12 @@ function saveChart() {
   setTimeout(() => { $('save').textContent = t('Save chart', '保存命盘'); }, 1500);
 }
 
+// The five elements, as a legend and as the cycle in the beginner's guide.
+function renderLegends() {
+  $('el-legend').innerHTML = ELEMENTS.map((_, e) => `<span class="${elClass(e)}">${elWord(e)}</span>`).join(' ');
+  $('el-cycle').innerHTML = `${ELEMENTS.map((_, e) => `<span class="${elClass(e)}">${elWord(e)}</span>`).join(' → ')} → <span class="${elClass(0)}">${EL_EMOJI[0]}</span>`;
+}
+
 // ---- Start-up ------------------------------------------------------------------------------------
 
 function switchTab(name) {
@@ -862,6 +891,7 @@ function applyLanguage() {
   fillTimeZones();
   $('tz').value = tz;
   showCalendar();
+  renderLegends();
 }
 
 document.querySelectorAll('input[name="lang"]').forEach((el) => el.addEventListener('input', () => {
@@ -879,6 +909,9 @@ $('pillars').addEventListener('click', (e) => {
   b.classList.add('on');
   $('explain').innerHTML = explain(b.dataset.x);
 });
+// The beginner's guide starts open until it has been closed once.
+$('intro').open = !state.introSeen;
+$('intro').addEventListener('toggle', () => { if (!$('intro').open && !state.introSeen) { state.introSeen = true; persist(); } });
 render();
 renderSaved();
 renderMatchOptions();

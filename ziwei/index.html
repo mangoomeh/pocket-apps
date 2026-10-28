@@ -96,10 +96,23 @@
       <p class="status bad" id="error" hidden></p>
 
       <div id="result" hidden>
+        <div class="card zw-glance" id="zw-glance"></div>
+        <details class="card intro" id="intro">
+          <summary data-zh="👋 第一次看紫微斗数？这样看命盘（1 分钟）">👋 New to Zi Wei Dou Shu? How to read your chart (1 minute)</summary>
+          <ol class="intro-steps">
+            <li data-zh="<b>命盘有 12 个格子，</b>每格是人生的一个方面：命宫（你自己）、财帛、官禄、夫妻、疾厄等等。"><b>Your chart is 12 boxes,</b> each one an area of life: Life (you), Wealth, Career, Spouse, Health and so on.</li>
+            <li data-zh="<b>星曜落在格子里。</b>大字的主星最重要，描述这个方面；小字的辅星，绿色帮忙，红色添麻烦。"><b>Stars sit in the boxes.</b> The big main stars describe that area most; the small ones add help (green) or trouble (red). In English each main star has a nickname, like Emperor or Wolf.</li>
+            <li data-zh="<b>先看“命宫”（名字是彩色的），</b>它就是你。点任何格子都能看解释，被点的格子会加黑框。"><b>Start with the Life box</b> (its name is in colour): that's you. Tap any box to read about it; the box you tapped gets a dark outline.</li>
+            <li data-zh="<b>格子角落的岁数是它的大限：</b>那十年由这方面主导。紫框是你现在的十年，浅色格子是今年。"><b>The ages in each box's corner are its 10-year chapter,</b> when that area of life takes the lead. The purple outline is your chapter now; the shaded box is this year.</li>
+            <li data-zh="<b>四个标签：</b><b class=&quot;hua h0&quot;>禄</b> 好运财气 <b class=&quot;hua h1&quot;>权</b> 掌控力 <b class=&quot;hua h2&quot;>科</b> 名声助力 <b class=&quot;hua h3&quot;>忌</b> 要留意的地方。"><b>Four tags:</b> <b class="hua h0">禄</b> good fortune, <b class="hua h1">权</b> power, <b class="hua h2">科</b> recognition, <b class="hua h3">忌</b> the area to watch.</li>
+            <li data-zh="<b>空宫</b>没有主星，就借对面格子的主星来看。"><b>An empty box</b> has no main star, so it's read with the stars of the box opposite.</li>
+          </ol>
+          <p class="hint" data-zh="紫微斗数是传统的自我反思方式，不是预言。">Zi Wei Dou Shu is a traditional way to reflect on yourself, not a prediction.</p>
+        </details>
         <div class="card zw-card">
           <h2 data-zh="命盘 <small>点宫位查看解释</small>">The 12 palaces <small>十二宫 · tap one</small></h2>
           <div class="zw-grid" id="zw-grid"></div>
-          <p class="hint legend" data-zh="<b class=&quot;hua h0&quot;>禄</b> 化禄 <b class=&quot;hua h1&quot;>权</b> 化权 <b class=&quot;hua h2&quot;>科</b> 化科 <b class=&quot;hua h3&quot;>忌</b> 化忌 · <span class=&quot;zw-key now&quot;></span> 当前大限 · <span class=&quot;zw-key year&quot;></span> 今年流年"><b class="hua h0">禄</b> wealth <b class="hua h1">权</b> power <b class="hua h2">科</b> fame <b class="hua h3">忌</b> trouble · <span class="zw-key now"></span> this 10-year period · <span class="zw-key year"></span> this year</p>
+          <p class="hint legend" data-zh="<b class=&quot;hua h0&quot;>禄</b> 化禄 <b class=&quot;hua h1&quot;>权</b> 化权 <b class=&quot;hua h2&quot;>科</b> 化科 <b class=&quot;hua h3&quot;>忌</b> 化忌 · <span class=&quot;zw-key now&quot;></span> 当前大限 · <span class=&quot;zw-key year&quot;></span> 今年流年"><b class="hua h0">禄</b> good fortune <b class="hua h1">权</b> power <b class="hua h2">科</b> recognition <b class="hua h3">忌</b> watch · <span class="zw-key now"></span> this 10-year period · <span class="zw-key year"></span> this year</p>
         </div>
         <div class="card reading" id="zw-detail"></div>
         <div class="card">
@@ -119,7 +132,7 @@
 
     <section role="tabpanel" data-panel="now" hidden>
       <div class="card">
-        <p class="hint" data-zh="选任意日期，查看那时的大限和流年。">Pick any date to see the 10-year period and year it falls in.</p>
+        <p class="hint" data-zh="每十年由命盘的一个格子主导（大限），每一年又会突出另一个格子（流年）。可以选任意日期往前或往后看。">Every 10 years a different box of your chart takes the lead, and each year highlights another. Pick any date to look ahead or back.</p>
         <div class="view-date">
           <button type="button" class="secondary small" id="zw-view-prev" aria-label="Previous year" data-zh-label="上一年">‹</button>
           <input type="date" id="zw-view-date" min="1901-02-19" max="2099-12-31" aria-label="View date" data-zh-label="查看日期">

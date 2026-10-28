@@ -279,14 +279,42 @@ function render() {
   if (selected == null || !zw.palaces[selected]) selected = zw.life;
   const life = zw.palaces[zw.life];
   const { stars, borrowed } = starsToRead(zw, life);
-  $('headline').textContent = stars.map((s) => MAIN_STARS[s.star].zh).join(' ') || t('Empty life palace', '命宫空宫');
-  $('headline').classList.add('cjk');
-  $('subline').textContent = `${f.name ? `${f.name} · ` : ''}${t(`Life palace in ${gz(life)}${borrowed ? ' (borrowed stars)' : ''} · ${bureauText(zw)}`, `命宫${gz(life)}${borrowed ? '（借对宫）' : ''} · ${bureauText(zw)}`)}`;
+  const zhNames = stars.map((s) => MAIN_STARS[s.star].zh).join(' ');
+  $('headline').textContent = t(`⭐ The ${stars.map((s) => MAIN_STARS[s.star].en).join(' & ')}`, zhNames) || t('Empty life palace', '命宫空宫');
+  $('headline').classList.toggle('cjk', lang() === 'zh');
+  $('subline').textContent = `${f.name ? `${f.name} · ` : ''}${t(`Your main star${stars.length > 1 ? 's' : ''}: ${zhNames}${borrowed ? ' (borrowed)' : ''}`, `命宫主星${borrowed ? '（借对宫）' : ''}`)}`;
+  renderGlance();
   renderGrid();
   $('zw-detail').innerHTML = palaceHtml(zw.palaces[selected]);
   renderReading();
   renderNow();
   renderHours();
+}
+
+// The chart at a glance, in plain words: main star, the chapter you're in, this year, and where the
+// birth year's good-fortune and watch tags fall.
+function renderGlance() {
+  const life = zw.palaces[zw.life];
+  const { stars, borrowed } = starsToRead(zw, life);
+  const { age, decade, yr } = zwNow();
+  const holder = (k) => zw.palaces.find((p) => [...p.main, ...p.minor].some((s) => s.star === k));
+  const [luKey, , , jiKey] = SIHUA[zw.yearStem];
+  const lu = holder(luKey); const ji = holder(jiKey);
+  const area = (p) => t(`your <b>${PALACES[p.name].en}</b> box (${esc(PALACES[p.name].about)})`, `你的<b>${PALACES[p.name].zh}</b>（${esc(PALACES[p.name].aboutZh)}）`);
+  const items = [
+    ['⭐', t(`Your main star${stars.length > 1 ? 's' : ''}`, '命宫主星'), stars.length
+      ? stars.map((s) => t(`<b>${MAIN_STARS[s.star].en}</b> (${MAIN_STARS[s.star].zh}): ${esc(MAIN_STARS[s.star].about)}`, `<b>${MAIN_STARS[s.star].zh}</b>：${esc(MAIN_STARS[s.star].aboutZh)}`)).join(t('; ', '；')) + (borrowed ? t(' (borrowed from the opposite box)', '（借对宫）') : '')
+      : t('No main star', '无主星')],
+    ['📅', t('Your chapter now', '现在的大限'), decade
+      ? t(`At ${age}, ${area(decade)} leads, ages ${decade.decade.from}–${decade.decade.to}.`, `虚岁${age}岁，由${area(decade)}主导（${decade.decade.from}–${decade.decade.to}岁）。`)
+      : t(`Your first 10-year chapter starts at age ${zw.bureau}.`, `${zw.bureau}岁起第一个大限。`)],
+    ['🗓️', t('This year', '今年'), t(`Highlights ${area(yr.palace)}.`, `突出${area(yr.palace)}。`)],
+  ];
+  if (lu) items.push(['🍀', t('Good fortune (禄)', '好运（化禄）'), t(`Sits in ${area(lu)}, with ${MINOR_STARS[luKey] ? MINOR_STARS[luKey].en : MAIN_STARS[luKey].en} (${starOf(luKey).zh}).`, `落在${area(lu)}，${starOf(luKey).zh}化禄。`)]);
+  if (ji) items.push(['⚠️', t('The area to watch (忌)', '要留意（化忌）'), t(`${area(ji)[0].toUpperCase()}${area(ji).slice(1)}, with ${MINOR_STARS[jiKey] ? MINOR_STARS[jiKey].en : MAIN_STARS[jiKey].en} (${starOf(jiKey).zh}).`, `${area(ji)}，${starOf(jiKey).zh}化忌。`)]);
+  $('zw-glance').innerHTML = `<h2>${t('At a glance', '一眼看懂')}</h2>
+    <ul class="glance">${items.map(([icon, head, body]) => `<li><span aria-hidden="true">${icon}</span><div><small>${head}</small><p>${body}</p></div></li>`).join('')}</ul>
+    <p class="hint">${t('Tap any box in the chart below to read about it.', '点下面命盘的任何格子查看解释。')} <button type="button" class="linkish" data-go="reading">${t('All 12 areas', '十二宫解读')}</button> · <button type="button" class="linkish" data-go="now">${t('Year by year', '逐年运势')}</button></p>`;
 }
 
 // The traditional layout: 巳午未申 along the top, 寅丑子亥 along the bottom.
@@ -296,7 +324,7 @@ function renderGrid() {
   const { age, decade, yr } = zwNow();
   const cell = (p) => {
     const cls = ['zw-cell', p.branch === zw.life ? 'life' : '', p.branch === selected ? 'sel' : '', decade && p.branch === decade.branch ? 'now' : '', p.branch === yr.branch ? 'year' : ''].join(' ');
-    const main = p.main.map((s) => `<span class="zw-main">${MAIN_STARS[s.star].zh}${huaBadge(s.hua)}</span>`).join('');
+    const main = p.main.map((s) => `<span class="zw-main">${MAIN_STARS[s.star].zh}${huaBadge(s.hua)}${lang() === 'en' ? `<small class="zw-en">${MAIN_STARS[s.star].en}</small>` : ''}</span>`).join('');
     const minor = p.minor.map((s) => `<span class="zw-minor ${MINOR_STARS[s.star].good ? 'good' : 'bad'}">${MINOR_STARS[s.star].zh}${huaBadge(s.hua)}</span>`).join('');
     return `<button type="button" class="${cls}" data-zw="${p.branch}" aria-pressed="${p.branch === selected}">
       <span class="zw-name">${palaceLabel(p.name)}${p.body ? `<i class="zw-body">${t('Body', '身')}</i>` : ''}</span>
@@ -320,11 +348,11 @@ function renderReading() {
   const life = zw.palaces[zw.life];
   const { stars, borrowed } = starsToRead(zw, life);
   const body = zw.palaces[zw.body];
-  const names = stars.map((s) => MAIN_STARS[s.star].zh).join(t(' and ', '、'));
+  const names = stars.map((s) => t(`${MAIN_STARS[s.star].zh} (the ${MAIN_STARS[s.star].en})`, MAIN_STARS[s.star].zh)).join(t(' and ', '、'));
   $('zw-life').innerHTML = `<h2>${t('You in a line', '命宫一句话')} <small>${t('life palace', '命宫')} ${gz(life)}</small></h2>
     <p>${t(`Your life palace ${borrowed ? 'is empty and borrows' : 'holds'} ${names}: `, `命宫${borrowed ? '无主星，借对宫' : '坐'}${names}：`)}${esc(stars.map((s) => t(MAIN_STARS[s.star].about, MAIN_STARS[s.star].aboutZh)).join(t('; ', '；')))}${t('.', '。')}</p>
-    <p class="hint">${t(`Body palace: your ${PALACES[body.name].en} palace. Element pattern: ${bureauText(zw)} (from the life palace's 纳音, ${zw.lifeNayin}); your first 10-year period starts at ${zw.bureau}. Born in a ${STEMS[zw.yearStem]} year, so ${SIHUA[zw.yearStem].map((k, h) => `${starOf(k).zh} ${HUA[h].en.toLowerCase()}`).join(', ')}.`,
-    `身宫在${PALACES[body.name].zh}。五行局：${bureauText(zw)}（命宫纳音${zw.lifeNayin}），${zw.bureau}岁起大限。生年${STEMS[zw.yearStem]}干四化：${SIHUA[zw.yearStem].map((k, h) => `${starOf(k).zh}${HUA[h].zh}`).join('、')}。`)}</p>`;
+    <details class="tech"><summary class="hint">${t('How this chart was worked out', '排盘资料')}</summary><p class="hint">${t(`Body palace: your ${PALACES[body.name].en} palace. Element pattern: ${bureauText(zw)} (from the life palace's 纳音, ${zw.lifeNayin}); your first 10-year period starts at ${zw.bureau}. Born in a ${STEMS[zw.yearStem]} year, so ${SIHUA[zw.yearStem].map((k, h) => `${starOf(k).zh} ${HUA[h].en.toLowerCase()}`).join(', ')}.`,
+    `身宫在${PALACES[body.name].zh}。五行局：${bureauText(zw)}（命宫纳音${zw.lifeNayin}），${zw.bureau}岁起大限。生年${STEMS[zw.yearStem]}干四化：${SIHUA[zw.yearStem].map((k, h) => `${starOf(k).zh}${HUA[h].zh}`).join('、')}。`)}</p></details>`;
   // All twelve palaces, in the traditional order from the life palace.
   const order = Array.from({ length: 12 }, (_, i) => zw.palaces.find((p) => p.name === i));
   $('zw-palaces').innerHTML = order.map((p) => `<div class="card reading">${palaceHtml(p)}</div>`).join('');
@@ -346,7 +374,7 @@ function renderNow() {
     <p>${decade ? t(`At ${age} (nominal age) you are in the 10-year period of your <strong>${PALACES[decade.name].en}</strong> palace (ages ${decade.decade.from}–${decade.decade.to}): ${esc(PALACES[decade.name].about)} take centre stage.`,
     `虚岁${age}岁，正走<strong>${PALACES[decade.name].zh}</strong>大限（${decade.decade.from}–${decade.decade.to}岁）：${esc(PALACES[decade.name].aboutZh)}是这十年的重点。`)
     : t(`Your first 10-year period starts at age ${zw.bureau}.`, `${zw.bureau}岁起第一个大限。`)}</p>
-    <p>${t(`${isToday ? 'This year' : `The lunar year ${lunarYear}`} (${STEMS[yr.stem]}${BRANCHES[yr.branch]}) falls on your <strong>${PALACES[yr.palace.name].en}</strong> palace, and its four transformations land like this:`,
+    <p>${t(`${isToday ? 'This year' : `The lunar year ${lunarYear}`} (${STEMS[yr.stem]}${BRANCHES[yr.branch]}) falls on your <strong>${PALACES[yr.palace.name].en}</strong> palace, and its four tags (good fortune, power, recognition, watch) land here:`,
     `${isToday ? '今年' : `${lunarYear}年`}${STEMS[yr.stem]}${BRANCHES[yr.branch]}，流年命宫落在你的<strong>${PALACES[yr.palace.name].zh}</strong>，流年四化如下：`)}</p>
     <ul class="notes">${huaList(yr)}</ul>`;
   const periods = [...zw.palaces].sort((a, b) => a.decade.from - b.decade.from);
@@ -566,6 +594,10 @@ document.querySelectorAll('input[name="lang"]').forEach((el) => el.addEventListe
   renderSaved();
 }));
 
+$('zw-glance').addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) switchTab(b.dataset.go); });
+// The beginner's guide starts open until it has been closed once.
+$('intro').open = !state.introSeen;
+$('intro').addEventListener('toggle', () => { if (!$('intro').open && !state.introSeen) { state.introSeen = true; persist(); } });
 render();
 renderSaved();
 if (zw && shared) setFormOpen(false);

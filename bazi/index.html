@@ -99,6 +99,8 @@
       <div id="result" hidden>
         <div class="card">
           <h2><span data-zh="四柱">Four Pillars</span> <small id="chart-note"></small></h2>
+          <p class="hint" data-zh="每一列是一柱。先看两个大字：上面是天干，下面是地支（带生肖）。“日”那一列就是你。颜色代表五行：">Each column is one pillar. Start with the two big characters: the top one and the bottom one (with its animal). The Day column is you. Colours show the element:</p>
+          <p class="el-legend" id="el-legend"></p>
           <div class="pgrid" id="pillars"></div>
           <p class="explain" id="explain" aria-live="polite">Tap any label or value to see what it means.</p>
         </div>
@@ -110,30 +112,33 @@
         </div>
 
         <div class="card">
-          <h2 data-zh="日主">Day master</h2>
+          <h2 data-zh="日主 <small>代表你的字</small>">You <small>your day master, 日主</small></h2>
           <p class="dm-line" id="dm"></p>
         </div>
 
         <div class="card">
           <h2 data-zh="五行">Five elements</h2>
           <ul class="elements" id="elements"></ul>
-          <p class="hint" data-zh="八字的五行个数（地支按本气算），第二个数字包括藏干。">Count of the eight characters (each branch by its main qi). The second number includes hidden stems.</p>
+          <p class="hint" data-zh="长条＝这个五行多，短或空＝少。少的五行往往对你有帮助，见“摘要”。">A long bar means lots of that element; short or empty means little. The ones you lack often help you: see the Summary.</p>
+          <p class="hint" data-zh="八字的五行个数（地支按本气算），第二个数字包括藏干。"><small>Count of the eight characters (each branch by its main element). The second number includes hidden stems.</small></p>
         </div>
 
         <div class="card">
-          <h2 data-zh="刑冲合害">Interactions</h2>
+          <h2 data-zh="刑冲合害 <small>各柱之间的关系</small>">How your pillars get on <small>刑冲合害</small></h2>
+          <p class="hint" data-zh="合：彼此拉近，事情容易促成。冲：互相推开，常代表变动。刑、害：小摩擦。">Combinations pull pillars together, so things come together. Clashes push apart and often mean change. Punishments and harms are small frictions.</p>
           <ul class="notes" id="interactions"></ul>
         </div>
 
         <div class="card">
           <h2 data-zh="神煞">Symbolic stars <small>神煞</small></h2>
+          <p class="hint" data-zh="传统上的吉凶小星，补充一些细节，不是重点。">Traditional lucky and unlucky “stars” that add small details. Not the main reading.</p>
           <ul class="notes" id="stars"></ul>
         </div>
 
-        <div class="card">
-          <h2 data-zh="详细资料">Details</h2>
+        <details class="card tech">
+          <summary><h2 data-zh="技术资料 <small>农历、节气、时区</small>">Technical details <small>calendar, solar terms, time zone</small></h2></summary>
           <dl class="summary" id="details"></dl>
-        </div>
+        </details>
 
         <div class="actions">
           <button class="primary" id="save" type="button" data-zh="保存命盘">Save chart</button>
@@ -147,6 +152,21 @@
     </section>
 
     <section role="tabpanel" data-panel="summary" hidden>
+      <details class="card intro" id="intro">
+        <summary data-zh="👋 第一次看八字？从这里开始（1 分钟）">👋 New to BaZi? Start here (1 minute)</summary>
+        <ol class="intro-steps">
+          <li data-zh="<b>八字就是“八个字”。</b>出生的年、月、日、时各排成一柱，每柱两个字：四柱 × 2 = 8 个字。"><b>BaZi (八字) means “eight characters”.</b> Your birth year, month, day and hour each become a pillar of two characters: 4 pillars × 2 = 8.</li>
+          <li><span data-zh="<b>每个字都属于五行之一</b>，颜色就代表它的五行。五行一个生一个：">
+            <b>Every character is one of five elements</b>, shown by its colour. Each one feeds the next:</span>
+            <span class="el-cycle" id="el-cycle"></span>
+            <small data-zh="木生火，火烧成土，土中藏金，金聚水，水养木。">Wood fuels fire, fire leaves earth (ash), earth holds metal, metal gathers water, and water grows wood.</small></li>
+          <li data-zh="<b>日柱上面那个字就是你</b>（叫“日主”）。它的五行和意象，例如“大海”，描述你的本性。"><b>The top character of your Day pillar is you</b> (your “day master”). Its element and picture, like “the ocean”, describe your nature.</li>
+          <li data-zh="<b>其他字都按它和你的关系来看：</b>支持你的、你创造的、你赚取的、推动你的，以及和你同类的人。"><b>Everything else is read by how it relates to you:</b> what supports you, what you create, what you earn, what pushes you, and the people who stand beside you.</li>
+          <li data-zh="<b>平衡最重要。</b>你缺少的五行，往往就是对你有帮助的五行。"><b>Balance matters.</b> The elements you're short of are usually the ones that help you.</li>
+          <li data-zh="<b>运势每十年换一步，每年也不同。</b><span class=&quot;fav good&quot;>✓</span> 顺 <span class=&quot;fav mixed&quot;>~</span> 平 <span class=&quot;fav hard&quot;>!</span> 吃力：要多花力气，不等于坏运。"><b>Luck changes in 10-year chapters, and every year.</b> <span class="fav good">✓</span> suits you, <span class="fav mixed">~</span> mixed, <span class="fav hard">!</span> demanding: more effort, not bad luck.</li>
+        </ol>
+        <p class="hint" data-zh="八字是传统的自我反思方式，不是预言。">BaZi is a traditional way to reflect on yourself, not a prediction.</p>
+      </details>
       <div id="summary"><div class="card"><p class="hint">Enter a birth date on the Chart tab.</p></div></div>
       <details class="full-reading" id="full-reading">
         <summary class="primary-ish" data-zh="完整解读 ▾">Full reading ▾</summary>
@@ -169,7 +189,7 @@
     <section role="tabpanel" data-panel="luck" hidden>
       <div class="card" id="now-card" hidden>
         <h2 data-zh="当下 <small>流年 · 流月 · 流日</small>">Now <small>流年 · 流月 · 流日</small></h2>
-        <p class="hint" data-zh="选任意日期，查看那一年、那个月和那一天。">Pick any date to see that year, month and day.</p>
+        <p class="hint" data-zh="每一年、每个月、每一天都有自己的一柱，拿来和你的命盘对照。<span class=&quot;fav good&quot;>✓</span> 顺 <span class=&quot;fav mixed&quot;>~</span> 平 <span class=&quot;fav hard&quot;>!</span> 吃力（要多花力气，不等于坏运）。可以选任意日期。">Every year, month and day has its own pillar, read against yours. <span class="fav good">✓</span> suits you, <span class="fav mixed">~</span> mixed, <span class="fav hard">!</span> demanding (more effort, not bad luck). Pick any date to look ahead or back.</p>
         <div class="view-date">
           <button type="button" class="secondary small" id="view-prev" aria-label="Previous month" data-zh-label="上一个月">‹</button>
           <input type="date" id="view-date" min="1800-01-01" max="2200-12-31" aria-label="View date" data-zh-label="查看日期">
