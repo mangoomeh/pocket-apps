@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#312e81">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Tarot</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="../icons/tarot-apple.png">
+  <link rel="icon" href="../icons/tarot-192.png">
+  <script type="module" src="../shared/pwa.js"></script>
+  <link rel="stylesheet" href="../shared/styles.css">
+</head>
+<body class="theme-tarot">
+  <header class="balance">
+    <a class="back" href="../">‹ Apps</a>
+    <p class="eyebrow">Rider–Waite–Smith deck · 78 cards</p>
+    <p class="big">Tarot</p>
+    <p class="muted">Ask a question, shuffle, and turn the cards over</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="read" aria-selected="true">Read</button>
+    <button role="tab" data-tab="cards">Cards</button>
+    <button role="tab" data-tab="learn">Learn</button>
+    <button role="tab" data-tab="journal">Journal</button>
+  </nav>
+
+  <main>
+    <section role="tabpanel" data-panel="read">
+      <div class="card" id="daily"></div>
+      <div id="reading"></div>
+    </section>
+
+    <section role="tabpanel" data-panel="cards" hidden>
+      <div class="card">
+        <label class="field"><span>Find a card</span><input id="search" type="search" placeholder="e.g. Star, cups, love" autocomplete="off"></label>
+        <div class="chips tr-filter" id="filter"></div>
+      </div>
+      <div class="tr-grid" id="grid"></div>
+    </section>
+
+    <section role="tabpanel" data-panel="learn" hidden>
+      <div class="card tr-learn">
+        <h2>🔮 What tarot is</h2>
+        <p>A deck of 78 picture cards. You think of a question, shuffle, and lay cards out in a pattern called a <b>spread</b>. Each place in the spread has a meaning (like “past” or “advice”), and each card's picture and traditional meaning give you something to reflect on.</p>
+        <p>Think of it as a mirror for your thoughts, not a fortune: the cards are drawn at random, and what matters is what they help you notice.</p>
+      </div>
+      <div class="card tr-learn">
+        <h2>🌟 The two parts of the deck</h2>
+        <p><b>22 Major Arcana</b>, from The Fool (0) to The World (21): big life lessons and turning points. Read them as the main story.</p>
+        <p><b>56 Minor Arcana</b>, in four suits of 14 (Ace to Ten, then Page, Knight, Queen and King): everyday events, feelings and people.</p>
+      </div>
+      <div class="card tr-learn">
+        <h2>🃏 The four suits</h2>
+        <ul class="tr-suits" id="suits"></ul>
+        <p><b>Numbers</b> tell a story from Ace (a seed, a start) to Ten (completion, sometimes too much). <b>Court cards</b> are people, or sides of you: Pages are learners and messages, Knights are action, Queens are inner mastery and care, Kings are outer mastery and leadership.</p>
+      </div>
+      <div class="card tr-learn">
+        <h2>🙃 Reversed cards</h2>
+        <p>A card that comes out upside down is <b>reversed</b>. It usually means the card's energy is blocked, delayed, inward, or too much or too little. Not a bad omen: a softer or more inward version. You can turn reversals off under Read.</p>
+      </div>
+      <div class="card tr-learn">
+        <h2>❓ Asking a good question</h2>
+        <ul>
+          <li>Open questions work best: “What do I need to know about my new job?” rather than “Will I get rich?”</li>
+          <li>Ask about yourself and what you can do, not what someone else will do.</li>
+          <li>One question per reading. Pull again later, not straight away.</li>
+        </ul>
+      </div>
+      <div class="card tr-learn">
+        <h2>📖 Reading a spread</h2>
+        <ol>
+          <li>Look at each card in its place: the place's meaning plus the card's meaning.</li>
+          <li>Look at the whole: lots of Majors means big themes; one suit dominating tells you the area of life. The app sums this up for you.</li>
+          <li>Notice your first reaction to each picture. That is often the most useful part.</li>
+          <li>Write it down in the Journal and look back later.</li>
+        </ol>
+      </div>
+      <p class="hint tr-foot">The card pictures are Pamela Colman Smith's original 1909 art for the Rider–Waite deck, which is in the public domain (scans from Wikimedia Commons). For reflection and fun; not advice for health, money or legal decisions.</p>
+    </section>
+
+    <section role="tabpanel" data-panel="journal" hidden>
+      <div id="journal"></div>
+    </section>
+  </main>
+
+  <dialog class="tr-dialog" id="detail"></dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -380,6 +380,24 @@ October 2026).
   trackers seemeta.com and mergetacticsbuild.com. Update it when the monthly changes land. Fan-made; not made by
   or linked to Supercell.
 
+### 🌙 Tarot (`tarot/`)
+
+Tarot readings with the full 78-card Rider–Waite–Smith deck, in Pamela Colman Smith's original 1909 art (public
+domain; scans from Wikimedia Commons, resized in `tarot/cards/`).
+
+- **Card of the day:** one card, the same all day and different each day (from the date and a seed kept on the
+  device); tap to turn it over.
+- **Readings:** an optional question, then a spread: one card, Past · Present · Future, Situation · Action · Outcome,
+  Relationship, Two paths, or the ten-card Celtic Cross (laid out as the classic cross and staff). Shuffle with a
+  fair Fisher–Yates shuffle from the device's secure random numbers, then tap each card to turn it over. Cards can
+  come out reversed (or not, if you switch that off). Each card is read in its place, and a summary notes what the
+  mix says: many Major Arcana, a strong suit, court cards, reversals, Aces.
+- **Cards:** all 78 with their upright and reversed meanings, filtered by suit or searched (“love”, “money”).
+- **Learn:** what tarot is, the Major and Minor Arcana, the suits and their elements, court cards, reversals, how
+  to ask a good question and how to read a spread.
+- **Journal:** save a reading with your notes and look back later. Kept on the device; included in backups.
+- Meanings follow the Rider–Waite tradition, written short and plain, in `src/tarot.js`. For reflection and fun.
+
 ### 🦙 Local Chat (`chat/`)
 
 A chat app for your own AI models running in [Ollama](https://ollama.com) on your PC. The page talks to Ollama

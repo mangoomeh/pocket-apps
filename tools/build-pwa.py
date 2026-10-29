@@ -28,6 +28,7 @@ APPS = [
     ('learnai', 'AI for Beginners', 'Learn AI', '🤖', '#1e40af'),
     ('godigital', 'Go Digital', 'Go Digital', '📱', '#0f766e'),
     ('mergetactics', 'Merge Tactics Coach', 'Merge Tactics', '⚔️', '#b45309'),
+    ('tarot', 'Tarot', 'Tarot', '🌙', '#312e81'),
     ('chat', 'Local Chat', 'Local Chat', '🦙', '#111827'),
 ]
 
