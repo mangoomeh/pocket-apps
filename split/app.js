@@ -2,6 +2,7 @@ import { parseAmount } from '../src/cash.js';
 import {
   newId, sharesOf, expenseProblem, balances, settleUp, totalSpent, mergeGroups, encodeGroup, decodeGroup,
   formatAmount, homeOf, inHome, CURRENCIES, rateFromTable, chargesOf, personBreakdown, summaryText, parsePayNow, payNowPayload,
+  encodeSummary, decodeSummary,
 } from '../src/split.js';
 import { $, esc, switchTab, toast } from '../shared/ui.js';
 
@@ -29,6 +30,7 @@ function save() {
 }
 
 const state = load();
+let shared = null; // the group from a read-only #s= link, while one is open
 const group = () => state.groups.find((g) => g.id === state.current) || null;
 const liveMembers = (g) => g.members.filter((m) => !m.deleted);
 const memberName = (g, id) => g.members.find((m) => m.id === id)?.name ?? '?';
@@ -150,6 +152,12 @@ function formProblem(e) {
 // ---- Rendering --------------------------------------------------------------------------
 
 function render() {
+  $('view-shared').hidden = !shared;
+  if (shared) {
+    $('view-groups').hidden = true;
+    $('view-group').hidden = true;
+    return renderShared();
+  }
   const g = group();
   $('view-groups').hidden = !!g;
   $('view-group').hidden = !g;
@@ -307,9 +315,7 @@ function renderExpenses() {
 
 // The top of Summary: what this phone's person owes or is owed, which is usually all
 // someone opening a shared link wants to know. Asks who they are first.
-function renderYou() {
-  const g = group();
-  const card = $('you-card');
+function renderYou(g = group(), card = $('you-card'), readOnly = false) {
   const people = liveMembers(g);
   if (!g.me || !people.some((m) => m.id === g.me)) {
     card.innerHTML = `<h2>Who are you?</h2>
@@ -318,37 +324,37 @@ function renderYou() {
     return;
   }
   const b = personBreakdown(g, g.me);
-  const mine = currentTransfers().map((t, i) => ({ ...t, i })).filter((t) => t.from === g.me || t.to === g.me);
+  const mine = settleUp(balances(g), liveMembers(g).map((m) => m.id)).map((t, i) => ({ ...t, i })).filter((t) => t.from === g.me || t.to === g.me);
   let head;
   if (!mine.length) head = `<p class="you-big">You're all square 🎉</p>`;
   else head = mine.map((t) => {
     const owe = t.from === g.me;
     const other = g.members.find((m) => m.id === (owe ? t.to : t.from));
-    const btns = owe
-      ? `${homeOf(g) === 'SGD' && parsePayNow(other?.paynow) ? `<button class="primary small" data-qr="${t.i}">Pay by PayNow</button>` : ''}
-         <button class="secondary small" data-paid="${t.i}">I've paid</button>`
+    const qr = owe && homeOf(g) === 'SGD' && parsePayNow(other?.paynow) ? `<button class="primary small" data-qr="${t.i}">Pay by PayNow</button>` : '';
+    const btns = readOnly ? qr : owe
+      ? `${qr}<button class="secondary small" data-paid="${t.i}">I've paid</button>`
       : `<button class="secondary small" data-paid="${t.i}">${esc(other?.name ?? '?')} has paid me</button>`;
     return `<div class="you-line ${owe ? 'owe' : 'owed'}">
       <p class="you-big"><span>${owe ? `You owe <b>${esc(other?.name ?? '?')}</b>` : `<b>${esc(other?.name ?? '?')}</b> owes you`}</span>
-        <span class="amt ${owe ? 'neg' : 'pos'}">${money(t.cents)}</span></p>
-      <div class="row-btns">${btns}</div>
+        <span class="amt ${owe ? 'neg' : 'pos'}">${money(t.cents, g)}</span></p>
+      ${btns ? `<div class="row-btns">${btns}</div>` : ''}
     </div>`;
   }).join('');
   const rows = b.items.map((it) => {
     if (it.kind === 'payment') {
       return it.to
-        ? `<li><div class="top"><span>💸 You paid ${esc(memberName(g, it.to))}</span><span class="amt pos">+${money(it.cents)}</span></div><div class="meta">${fmtDate(it.at)}</div></li>`
-        : `<li><div class="top"><span>💸 ${esc(memberName(g, it.from))} paid you</span><span class="amt neg">−${money(it.cents)}</span></div><div class="meta">${fmtDate(it.at)}</div></li>`;
+        ? `<li><div class="top"><span>💸 You paid ${esc(memberName(g, it.to))}</span><span class="amt pos">+${money(it.cents, g)}</span></div><div class="meta">${readOnly ? '' : fmtDate(it.at)}</div></li>`
+        : `<li><div class="top"><span>💸 ${esc(memberName(g, it.from))} paid you</span><span class="amt neg">−${money(it.cents, g)}</span></div><div class="meta">${readOnly ? '' : fmtDate(it.at)}</div></li>`;
     }
     const who = it.paid ? 'You paid' : `${esc(memberName(g, it.paidBy))} paid`;
-    return `<li><div class="top"><span>${esc(it.desc)}</span><span class="amt">${it.share ? money(it.share) : '—'}</span></div>
-      <div class="meta">${who} ${money(it.cents)} · ${fmtDate(it.at)}${it.share ? '' : ' · not in your split'}</div></li>`;
+    return `<li><div class="top"><span>${esc(it.desc)}</span><span class="amt">${it.share ? money(it.share, g) : '—'}</span></div>
+      <div class="meta">${who} ${money(it.cents, g)}${readOnly ? '' : ` · ${fmtDate(it.at)}`}${it.share ? '' : ' · not in your split'}</div></li>`;
   }).join('');
   const totals = [
-    ['Your share of everything', money(b.share)],
-    ['You paid for the group', money(b.paid)],
-    b.sent && ['Payments you sent', money(b.sent)],
-    b.received && ['Payments you got', money(b.received)],
+    ['Your share of everything', money(b.share, g)],
+    ['You paid for the group', money(b.paid, g)],
+    b.sent && ['Payments you sent', money(b.sent, g)],
+    b.received && ['Payments you got', money(b.received, g)],
   ].filter(Boolean).map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
   card.innerHTML = `<p class="eyebrow">${esc(memberName(g, g.me))} · <button class="link" data-me="">Not you?</button></p>
     ${head}
@@ -356,6 +362,54 @@ function renderYou() {
       <dl class="summary">${totals}</dl>
       <p class="hint">Your share of each expense:</p>
       <ul class="history">${rows}</ul></details>` : ''}`;
+}
+
+// A read-only summary from a #s= link: who you are, what you owe, and the expenses.
+function renderShared() {
+  const g = shared;
+  const net = balances(g);
+  const ids = g.members.map((m) => m.id);
+  $('back').textContent = '‹ Apps';
+  $('eyebrow').textContent = g.name;
+  $('headline').textContent = money(totalSpent(g), g);
+  $('subline').textContent = `spent by ${g.members.length} people${g.sharedAt ? ` · as of ${fmtDate(g.sharedAt)}` : ''}`;
+  renderYou(g, $('sh-you'), true);
+  $('sh-balances').innerHTML = g.members.map((m) => {
+    const c = net[m.id] ?? 0;
+    const label = c > 0 ? `gets back ${money(c, g)}` : c < 0 ? `owes ${money(-c, g)}` : 'settled';
+    return `<div><dt>${esc(m.name)}${m.id === g.me ? ' (you)' : ''}</dt><dd class="${c > 0 ? 'pos' : c < 0 ? 'neg' : ''}">${label}</dd></div>`;
+  }).join('');
+  const transfers = settleUp(net, ids);
+  $('sh-settled').hidden = transfers.length > 0;
+  $('sh-settle').innerHTML = transfers.map((t) => `<li><div class="top"><span>${esc(memberName(g, t.from))} → ${esc(memberName(g, t.to))}</span><span class="amt">${money(t.cents, g)}</span></div></li>`).join('');
+  const list = g.expenses;
+  $('sh-expenses-empty').hidden = list.length > 0;
+  $('sh-expenses').innerHTML = list.map((e) => {
+    if (e.kind === 'payment') return `<li><div class="top"><span>💸 ${esc(memberName(g, e.paidBy))} paid ${esc(memberName(g, Object.keys(e.split.shares)[0]))}</span><span class="amt">${money(e.cents, g)}</span></div></li>`;
+    const n = Object.values(sharesOf(e, ids)).filter((c) => c > 0).length;
+    return `<li><div class="top"><span>${esc(e.desc)}</span><span class="amt">${money(e.cents, g)}</span></div>
+      <div class="meta">${esc(memberName(g, e.paidBy))} paid · split ${n} way${n === 1 ? '' : 's'}</div></li>`;
+  }).join('');
+  $('sh-foot').innerHTML = `A read-only summary someone shared${g.sharedAt ? ` on ${fmtDate(g.sharedAt)}` : ''}. Ask them for a new link after expenses change. <a href="./">Open Split</a> to make your own groups.`;
+}
+
+// Who you are on a shared summary is remembered per group name, so reopening a newer
+// link for the same group doesn't ask again.
+const SHARED_ME_KEY = 'split-shared-me';
+function sharedMe(g) {
+  try {
+    const name = JSON.parse(localStorage.getItem(SHARED_ME_KEY))?.[g.name];
+    return g.members.find((m) => m.name === name)?.id ?? null;
+  } catch { return null; }
+}
+function setSharedMe(id) {
+  shared.me = id;
+  try {
+    const all = JSON.parse(localStorage.getItem(SHARED_ME_KEY)) || {};
+    all[shared.name] = id ? memberName(shared, id) : undefined;
+    localStorage.setItem(SHARED_ME_KEY, JSON.stringify(all));
+  } catch { /* not remembered */ }
+  render();
 }
 
 function renderBalances() {
@@ -509,11 +563,11 @@ function loadQrLib() {
 }
 
 let qrTransfer = null;
-async function showQr(t) {
-  const g = group();
+async function showQr(t, g = group()) {
   const to = g.members.find((m) => m.id === t.to);
   qrTransfer = t;
-  $('qr-title').textContent = `${memberName(g, t.from)} pays ${to.name} ${money(t.cents)}`;
+  $('qr-title').textContent = `${memberName(g, t.from)} pays ${to.name} ${money(t.cents, g)}`;
+  $('qr-paid').hidden = g === shared;
   $('qr-code').textContent = 'Loading…';
   $('qr-dialog').showModal();
   try {
@@ -527,15 +581,18 @@ async function showQr(t) {
   }
 }
 
-async function shareUrl() {
-  return `${location.origin}${location.pathname}#g=${await encodeGroup(group())}`;
+// The read-only summary link friends normally get; editable copies use #g=.
+async function shareUrl(editable = false) {
+  const g = group();
+  return `${location.origin}${location.pathname}${editable ? `#g=${await encodeGroup(g)}` : `#s=${await encodeSummary(g)}`}`;
 }
 
-async function shareLink() {
+async function shareLink(editable = false) {
   const g = group();
-  const url = await shareUrl();
+  const url = await shareUrl(editable);
   if (navigator.share) {
-    try { await navigator.share({ title: `${g.name} · Split`, text: `Our expenses for ${g.name}`, url }); return; } catch { /* cancelled: fall back to copying */ }
+    const text = editable ? `An editable copy of ${g.name}` : `What everyone owes for ${g.name}`;
+    try { await navigator.share({ title: `${g.name} · Split`, text, url }); return; } catch { /* cancelled: fall back to copying */ }
   }
   try {
     await navigator.clipboard.writeText(url);
@@ -626,6 +683,15 @@ function handOff(hash) {
 // Opening a share link adds the group, or merges it into the copy already here.
 async function importFromHash() {
   if (/^#(add|trip)=/.test(location.hash)) return handOff(location.hash);
+  const s = location.hash.match(/^#s=([A-Za-z0-9_-]+)/);
+  if (s) {
+    // Kept in the address bar, so reloading shows it again; nothing is saved to the groups.
+    shared = await decodeSummary(s[1]);
+    if (!shared) toast("That link couldn't be read. Ask for it to be sent again.");
+    else shared.me = sharedMe(shared);
+    return render();
+  }
+  if (shared) { shared = null; render(); }
   const m = location.hash.match(/^#g=([A-Za-z0-9_-]+)/);
   if (!m) return;
   history.replaceState(null, '', location.pathname);
@@ -720,11 +786,18 @@ $('you-card').addEventListener('click', (ev) => {
   if (paid) recordPayment(t[paid.dataset.paid]);
   if (qr) showQr(t[qr.dataset.qr]);
 });
+$('sh-you').addEventListener('click', (ev) => {
+  const me = ev.target.closest('[data-me]');
+  const qr = ev.target.closest('[data-qr]');
+  if (me) setSharedMe(me.dataset.me || null);
+  if (qr) showQr(settleUp(balances(shared), shared.members.map((m) => m.id))[qr.dataset.qr], shared);
+});
 $('qr-close').addEventListener('click', () => $('qr-dialog').close());
 $('qr-paid').addEventListener('click', () => { $('qr-dialog').close(); if (qrTransfer) recordPayment(qrTransfer); });
 $('copy-summary').addEventListener('click', copySummary);
 
-$('share-link').addEventListener('click', shareLink);
+$('share-link').addEventListener('click', () => shareLink());
+$('share-edit').addEventListener('click', () => shareLink(true));
 function setMe(id) {
   group().me = id;
   if (!editingId) $('paid-by').innerHTML = ''; // so "Paid by" now defaults to you

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   sharesOf, expenseProblem, balances, settleUp, totalSpent, mergeGroups, encodeGroup, decodeGroup,
-  withCharges, chargesOf, personBreakdown, summaryText, crc16, parsePayNow, payNowPayload, formatAmount, inHome, rateFromTable,
+  encodeSummary, decodeSummary, withCharges, chargesOf, personBreakdown, summaryText, crc16, parsePayNow, payNowPayload, formatAmount, inHome, rateFromTable,
 } from '../src/split.js';
 
 const IDS = ['a', 'b', 'c'];
@@ -205,4 +205,37 @@ test('share links are short and give back exactly the same group', async () => {
   const v1 = await encodeData({ v: 1, id: 'g', name: 'Bangkok', currency: 'SGD', updatedAt: t, members: ms, expenses });
   assert.ok(text.length < v1.length, `${text.length} < ${v1.length}`);
   assert.equal(JSON.stringify((await decodeGroup(v1)).expenses), JSON.stringify(expenses));
+});
+
+test('a read-only summary link gives everyone the same balances, and is much shorter', async () => {
+  const t = 1761800000000;
+  const ms = ['Ann', 'Ben', 'Cat', 'Dan'].map((name, i) => ({ id: `id${i}abcd`, name, updatedAt: t }));
+  ms[1].paynow = '91234567';
+  ms[2].paynow = '98765432';
+  ms.push({ id: 'gone1234', name: 'Eve', updatedAt: t, deleted: true });
+  const [a, b, c, d] = ms.map((m) => m.id);
+  const ex = (id, desc, cents, paidBy, split, extra = {}) => ({ id, kind: 'expense', desc, cents, paidBy, split, at: t + id.length * 1000 + desc.length, updatedAt: t, ...extra });
+  const expenses = [
+    ex('e1', 'Dinner', 10001, a, { type: 'equal', among: [a, b, c, d] }),
+    ex('e2', 'Hotel', 50000, b, { type: 'weights', weights: { [a]: 2, [b]: 1, [c]: 1 } }),
+    ex('e3x', 'Massage', 120000, c, { type: 'exact', shares: { [a]: 60000, [d]: 60000 } }, { currency: 'THB', rate: 0.0385 }),
+    ex('e4xx', 'Gone', 999, a, { type: 'equal', among: [a, b] }, { deleted: true }),
+    { id: 'p1', kind: 'payment', desc: 'Payment', cents: 2000, paidBy: d, split: { type: 'exact', shares: { [b]: 2000 } }, at: t + 9e6, updatedAt: t },
+  ];
+  const g = { id: 'g', name: 'Bangkok', currency: 'SGD', updatedAt: t, members: ms, expenses };
+  const text = await encodeSummary(g, Date.UTC(2026, 9, 30, 12));
+  const s = await decodeSummary(text);
+  assert.equal(s.name, 'Bangkok');
+  assert.deepEqual(s.members.map((m) => m.name), ['Ann', 'Ben', 'Cat', 'Dan'], 'removed people are left out');
+  const byName = (grp) => Object.fromEntries(Object.entries(balances(grp)).map(([id, cents]) => [grp.members.find((m) => m.id === id).name, cents]));
+  assert.deepEqual(byName(s), byName(g));
+  assert.deepEqual(s.expenses.map((e) => e.desc), ['Payment', 'Massage', 'Dinner', 'Hotel'], 'newest first, no deleted ones');
+  assert.equal(s.expenses[1].cents, 4620, 'converted to the home currency');
+  // Only Ben is owed money here, so only his PayNow number travels.
+  const owed = Object.entries(byName(g)).filter(([, cents]) => cents > 0).map(([n]) => n);
+  assert.deepEqual(s.members.filter((m) => m.paynow).map((m) => m.name), owed.filter((n) => ['Ben', 'Cat'].includes(n)));
+  assert.equal(new Date(s.sharedAt).toISOString().slice(0, 10), '2026-10-30');
+  assert.ok(text.length < (await encodeGroup(g)).length / 2, `${text.length}`);
+  assert.equal(await decodeSummary('not-a-link'), null);
+  assert.equal(await decodeSummary(await encodeGroup(g)), null, 'an editable link is not a summary');
 });

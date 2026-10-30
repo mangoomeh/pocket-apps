@@ -132,11 +132,18 @@
 
       <section data-panel="people" hidden>
         <div class="card">
-          <h2>Share this group</h2>
-          <p class="hint">Send the link to your friends. Each phone keeps its own copy, so after anyone adds
-            expenses they share the link again. Opening a link merges it into the copy you have, so nothing is lost.</p>
-          <div class="actions"><button class="primary" id="share-link">Share link</button></div>
+          <h2>Share with the group</h2>
+          <p class="hint">Sends a read-only summary: friends tap their name and see what they owe, with PayNow if you've
+            added numbers below. The link is a snapshot, so share a new one after expenses change. Anyone with the link
+            can read the names and amounts in it.</p>
+          <div class="actions"><button class="primary" id="share-link">Share summary link</button></div>
           <p class="hint" id="share-note"></p>
+          <details class="share-edit">
+            <summary>Someone else adding expenses too?</summary>
+            <p class="hint">Send them an editable copy instead. Each phone keeps its own copy, so you both send each other a
+              new copy after adding expenses; opening one merges it in, so nothing is lost.</p>
+            <div class="actions"><button class="secondary" id="share-edit">Share an editable copy</button></div>
+          </details>
         </div>
         <div class="card">
           <h2>Who are you?</h2>
@@ -165,6 +172,24 @@
       </section>
     </main>
   </div>
+
+  <!-- A read-only summary someone shared (#s= link) -->
+  <main id="view-shared" hidden>
+    <div class="card you-card" id="sh-you" aria-live="polite"></div>
+    <div class="card">
+      <h2>Everyone</h2>
+      <dl class="summary" id="sh-balances"></dl>
+      <h3 class="sh-sub">Settle up</h3>
+      <ul class="history" id="sh-settle"></ul>
+      <p class="status ok" id="sh-settled" hidden>Everyone is settled up 🎉</p>
+    </div>
+    <div class="card">
+      <h2>Expenses</h2>
+      <ul class="history" id="sh-expenses"></ul>
+      <p class="hint" id="sh-expenses-empty" hidden>No expenses yet.</p>
+    </div>
+    <p class="hint sh-foot" id="sh-foot"></p>
+  </main>
 
   <dialog class="qr-dialog" id="qr-dialog">
     <h2 id="qr-title">PayNow</h2>

@@ -261,6 +261,63 @@ export async function decodeGroup(text) {
   return group;
 }
 
+// ---- Read-only summary links ----------------------------------------------------------
+
+// What a friend needs to see what they owe, and nothing else: names, and each expense's
+// description, amount (in the home currency), who paid and who shares it. No ids, times
+// or deleted records, so the link is short and can't be merged or edited. PayNow numbers
+// go in only for people who are owed money, so the QR works for paying them.
+//
+// [3, name, currency, names, paynows, items, day shared], newest item first. An expense is
+// [desc, cents, payer, split]: split is a bitmask of who shares it equally, or a list of
+// cents per person. A payment is [0, cents, from, to].
+export function encodeSummary(group, now = Date.now()) {
+  const home = homeOf(group);
+  const items = live(group.expenses).sort((a, b) => b.at - a.at);
+  const used = new Set(items.flatMap((e) => [e.paidBy, ...Object.keys(e.split.shares || e.split.weights || {}), ...(e.split.among || [])]));
+  const people = group.members.filter((m) => !m.deleted || used.has(m.id));
+  const ids = people.map((m) => m.id);
+  const ix = (id) => ids.indexOf(id);
+  const net = balances(group);
+  const paynows = people.map((m) => (net[m.id] > 0 && parsePayNow(m.paynow) ? m.paynow : 0));
+  while (paynows.length && !paynows[paynows.length - 1]) paynows.pop();
+  const packed = items.map((raw) => {
+    const e = inHome(raw, home);
+    if (e.kind === 'payment') return [0, e.cents, ix(e.paidBy), ix(Object.keys(e.split.shares)[0])];
+    let split;
+    if (e.split.type === 'equal' && ids.length <= 30) split = e.split.among.reduce((mask, id) => (ix(id) >= 0 ? mask | (1 << ix(id)) : mask), 0);
+    else {
+      const shares = sharesOf(e, group.members.map((m) => m.id));
+      split = ids.map((id) => shares[id] || 0);
+    }
+    return [e.desc, e.cents, ix(e.paidBy), split];
+  });
+  return encodeData([3, group.name, home, people.map((m) => m.name), paynows, packed, Math.floor(now / 86400000)]);
+}
+
+// The summary back as a group the usual functions work on (balances, settleUp,
+// personBreakdown), or null if the text isn't one.
+export async function decodeSummary(text) {
+  const d = await decodeData(text);
+  if (!Array.isArray(d) || d[0] !== 3 || !Array.isArray(d[3]) || !Array.isArray(d[5])) return null;
+  const [, name, currency, names, paynows, items, day] = d;
+  const members = names.map((n, i) => ({ id: String(i), name: String(n), ...(paynows?.[i] ? { paynow: String(paynows[i]) } : {}) }));
+  const id = (i) => String(i);
+  try {
+    const expenses = items.map(([desc, cents, payer, split], i) => {
+      const e = { id: `x${i}`, kind: 'expense', desc: String(desc), cents, paidBy: id(payer), at: items.length - i };
+      if (desc === 0) return { ...e, kind: 'payment', desc: 'Payment', split: { type: 'exact', shares: { [id(split)]: cents } } };
+      if (Array.isArray(split)) return { ...e, split: { type: 'exact', shares: Object.fromEntries(split.map((c, j) => [id(j), c]).filter(([, c]) => c > 0)) } };
+      return { ...e, split: { type: 'equal', among: names.map((_, j) => id(j)).filter((_, j) => split & (1 << j)) } };
+    });
+    const g = { id: 'shared', name: String(name || 'Group'), members, expenses, sharedAt: day * 86400000 || null };
+    if (CURRENCIES.includes(currency)) g.currency = currency;
+    return g;
+  } catch {
+    return null;
+  }
+}
+
 // ---- Text and money ------------------------------------------------------------------
 
 // The rate (home currency per 1 unit of `currency`) from an exchange-rate table based on
