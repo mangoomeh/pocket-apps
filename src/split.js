@@ -54,35 +54,43 @@ export function inHome(expense, home) {
   return { ...expense, cents, split, currency: home };
 }
 
-// Every live expense's shares in the home currency, as { expenseId: { memberId: cents } }.
-// An amount that doesn't divide evenly leaves spare cents; rather than always giving
-// them to the same people, each goes to whoever has paid least of their exact share so
-// far (ties in member order). Expenses are taken oldest first, so every phone works out
-// the same cents and each person's total stays within a cent of their exact share.
-export function groupShares(group) {
+// Every live expense's exact shares in the home currency, as { expenseId: { memberId:
+// cents } }. Equal and weighted splits are not rounded here, so $125.35 four ways is
+// 3133.75 cents each; payments and exact splits are whole cents already.
+export function exactShares(group) {
   const home = homeOf(group);
   const memberIds = group.members.map((m) => m.id);
-  const owedSoFar = {}; // exact share minus cents charged, per member
   const out = {};
-  const ordered = live(group.expenses).sort((a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  for (const raw of ordered) {
+  for (const raw of live(group.expenses)) {
     const e = inHome(raw, home);
     if (e.split.type === 'exact') { out[e.id] = { ...e.split.shares }; continue; }
     const weights = e.split.type === 'weights' ? e.split.weights : Object.fromEntries(e.split.among.map((id) => [id, 1]));
     const ids = memberIds.filter((id) => weights[id] > 0);
     const total = ids.reduce((sum, id) => sum + weights[id], 0);
-    if (!total) { out[e.id] = {}; continue; }
-    const exact = Object.fromEntries(ids.map((id) => [id, (e.cents * weights[id]) / total]));
-    const shares = Object.fromEntries(ids.map((id) => [id, Math.floor(exact[id])]));
-    let left = e.cents - ids.reduce((sum, id) => sum + shares[id], 0);
-    // Rounded so float noise never decides a tie.
-    const behind = (id) => Math.round(((owedSoFar[id] || 0) + exact[id] - shares[id]) * 1e6);
-    for (const id of [...ids].sort((a, b) => behind(b) - behind(a) || ids.indexOf(a) - ids.indexOf(b))) {
-      if (left-- <= 0) break;
-      shares[id] += 1;
-    }
-    for (const id of ids) owedSoFar[id] = (owedSoFar[id] || 0) + exact[id] - shares[id];
-    out[e.id] = shares;
+    out[e.id] = Object.fromEntries(ids.map((id) => [id, (e.cents * weights[id]) / total]));
+  }
+  return out;
+}
+
+// Each member's share of everything, added up exactly and rounded once at the end to
+// whole cents. The totals still add up to what was spent: the cents lost to rounding go
+// to the largest fractions (ties in member order), so nobody is more than a cent out.
+export function shareTotals(group) {
+  const memberIds = group.members.map((m) => m.id);
+  const exact = Object.fromEntries(memberIds.map((id) => [id, 0]));
+  for (const shares of Object.values(exactShares(group))) {
+    for (const [id, c] of Object.entries(shares)) exact[id] = (exact[id] || 0) + c;
+  }
+  // Rounded to a millionth of a cent first so float noise never decides anything.
+  const clean = Object.fromEntries(Object.entries(exact).map(([id, c]) => [id, Math.round(c * 1e6) / 1e6]));
+  const out = Object.fromEntries(Object.entries(clean).map(([id, c]) => [id, Math.floor(c)]));
+  const spent = Math.round(Object.values(clean).reduce((sum, c) => sum + c, 0));
+  let left = spent - Object.values(out).reduce((s, c) => s + c, 0);
+  const frac = (id) => Math.round((clean[id] - out[id]) * 1e6);
+  const order = Object.keys(clean);
+  for (const id of [...order].sort((x, y) => frac(y) - frac(x) || order.indexOf(x) - order.indexOf(y))) {
+    if (left-- <= 0) break;
+    out[id] += 1;
   }
   return out;
 }
@@ -127,22 +135,21 @@ const live = (list) => list.filter((x) => !x.deleted);
 // A payment between friends is stored as an expense the payer "paid" for the receiver.
 export function balances(group) {
   const ids = live(group.members).map((m) => m.id);
-  const allIds = group.members.map((m) => m.id);
   const net = Object.fromEntries(ids.map((id) => [id, 0]));
-  const shares = groupShares(group);
   for (const raw of live(group.expenses)) {
     const e = inHome(raw, homeOf(group));
     net[e.paidBy] = (net[e.paidBy] || 0) + e.cents;
-    for (const [id, c] of Object.entries(shares[e.id])) net[id] = (net[id] || 0) - c;
   }
+  for (const [id, c] of Object.entries(shareTotals(group))) if (c || id in net) net[id] = (net[id] || 0) - c;
   return net;
 }
 
 // How one person's balance adds up: the expenses they paid for or have a share of
-// (newest first, in the home currency), the payments they sent or got, and the totals.
+// (newest first, in the home currency, with their exact unrounded share), the payments
+// they sent or got, and the totals. share is rounded once, as in balances, so
 // paid − share + sent − received is their balance.
 export function personBreakdown(group, id) {
-  const shares = groupShares(group);
+  const shares = exactShares(group);
   const out = { items: [], paid: 0, share: 0, sent: 0, received: 0 };
   for (const raw of live(group.expenses)) {
     const e = inHome(raw, homeOf(group));
@@ -160,6 +167,7 @@ export function personBreakdown(group, id) {
     out.items.push({ id: e.id, kind: 'expense', desc: e.desc, paidBy: e.paidBy, cents: e.cents, paid, share, at: e.at });
   }
   out.items.sort((a, b) => b.at - a.at);
+  out.share = (shareTotals(group)[id] || 0) - out.received;
   out.net = out.paid - out.share + out.sent - out.received;
   return out;
 }
@@ -307,7 +315,7 @@ export async function decodeGroup(text) {
 // shares per person, or a list of cents per person. A payment is [0, cents, from, to].
 export function encodeSummary(group, now = Date.now()) {
   const home = homeOf(group);
-  // Newest first; the reverse of groupShares' order, so the cents come out the same.
+  // Newest first.
   const items = live(group.expenses).sort((a, b) => b.at - a.at || (a.id < b.id ? 1 : a.id > b.id ? -1 : 0));
   const used = new Set(items.flatMap((e) => [e.paidBy, ...Object.keys(e.split.shares || e.split.weights || {}), ...(e.split.among || [])]));
   const people = group.members.filter((m) => !m.deleted || used.has(m.id));

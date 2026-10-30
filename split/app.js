@@ -1,6 +1,6 @@
 import { parseAmount } from '../src/cash.js';
 import {
-  newId, sharesOf, groupShares, expenseProblem, balances, settleUp, totalSpent, mergeGroups, encodeGroup, decodeGroup,
+  newId, sharesOf, exactShares, expenseProblem, balances, settleUp, totalSpent, mergeGroups, encodeGroup, decodeGroup,
   formatAmount, homeOf, inHome, CURRENCIES, rateFromTable, chargesOf, personBreakdown, summaryText, parsePayNow, payNowPayload,
   encodeSummary, decodeSummary,
 } from '../src/split.js';
@@ -36,6 +36,15 @@ const liveMembers = (g) => g.members.filter((m) => !m.deleted);
 const memberName = (g, id) => g.members.find((m) => m.id === id)?.name ?? '?';
 const touch = (record) => { record.updatedAt = Date.now(); return record; };
 const money = (cents, g = group()) => formatAmount(cents, homeOf(g));
+// A share kept exact (e.g. 3133.75 cents is $31.3375), with up to 4 decimal places and
+// ≈ when it goes on further (like $3.3333…).
+function exactMoney(cents, g) {
+  if (Math.abs(cents - Math.round(cents)) < 1e-6) return money(Math.round(cents), g);
+  const home = homeOf(g);
+  const fmt = new Intl.NumberFormat('en-SG', { style: 'currency', currency: home, currencyDisplay: home === 'SGD' ? 'narrowSymbol' : 'code', minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  const shown = fmt.format(cents / 100).replace(/\u00a0/g, ' ');
+  return Math.abs(Math.round(cents * 100) - cents * 100) > 1e-4 ? `≈ ${shown}` : shown;
+}
 
 // ---- Form draft -------------------------------------------------------------------------
 
@@ -285,7 +294,7 @@ function renderExpenses() {
   const ids = g.members.map((m) => m.id);
   const home = homeOf(g);
   const list = g.expenses.filter((e) => !e.deleted).sort((a, b) => b.at - a.at);
-  const all = groupShares(g);
+  const all = exactShares(g);
   $('expenses-empty').hidden = list.length > 0;
   $('expense-list').innerHTML = list.map((e) => {
     const shares = all[e.id];
@@ -302,7 +311,7 @@ function renderExpenses() {
       meta = `${esc(memberName(g, e.paidBy))} paid · split ${n} way${n === 1 ? '' : 's'} · ${fmtDate(e.at)}`;
       if (h !== e) meta += ` · ≈ ${money(h.cents)}`;
       if (g.me) {
-        const mine = (h.paidBy === g.me ? h.cents : 0) - (shares[g.me] || 0);
+        const mine = Math.round((h.paidBy === g.me ? h.cents : 0) - (shares[g.me] || 0));
         if (mine > 0) meta += ` · <span class="pos">you lent ${money(mine)}</span>`;
         if (mine < 0) meta += ` · <span class="neg">you owe ${money(-mine)}</span>`;
       }
@@ -348,7 +357,7 @@ function renderYou(g = group(), card = $('you-card'), readOnly = false) {
         : `<li><div class="top"><span>💸 ${esc(memberName(g, it.from))} paid you</span><span class="amt neg">−${money(it.cents, g)}</span></div><div class="meta">${readOnly ? '' : fmtDate(it.at)}</div></li>`;
     }
     const who = it.paid ? 'You paid' : `${esc(memberName(g, it.paidBy))} paid`;
-    return `<li><div class="top"><span>${esc(it.desc)}</span><span class="amt">${it.share ? money(it.share, g) : '—'}</span></div>
+    return `<li><div class="top"><span>${esc(it.desc)}</span><span class="amt">${it.share ? exactMoney(it.share, g) : '—'}</span></div>
       <div class="meta">${who} ${money(it.cents, g)}${readOnly ? '' : ` · ${fmtDate(it.at)}`}${it.share ? '' : ' · not in your split'}</div></li>`;
   }).join('');
   const totals = [
@@ -361,7 +370,7 @@ function renderYou(g = group(), card = $('you-card'), readOnly = false) {
     ${head}
     ${b.items.length ? `<details class="you-how"><summary>How it adds up</summary>
       <dl class="summary">${totals}</dl>
-      <p class="hint">Your share of each expense:</p>
+      <p class="hint">Your share of each expense${b.items.some((it) => Math.abs(it.share % 1) > 1e-6) ? ', kept exact. Only your total is rounded to the cent' : ''}:</p>
       <ul class="history">${rows}</ul></details>` : ''}`;
 }
 

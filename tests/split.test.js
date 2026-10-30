@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   sharesOf, expenseProblem, balances, settleUp, totalSpent, mergeGroups, encodeGroup, decodeGroup,
-  encodeSummary, decodeSummary, withCharges, chargesOf, personBreakdown, summaryText, crc16, parsePayNow, payNowPayload, formatAmount, inHome, rateFromTable,
+  encodeSummary, decodeSummary, exactShares, shareTotals, withCharges, chargesOf, personBreakdown, summaryText, crc16, parsePayNow, payNowPayload, formatAmount, inHome, rateFromTable,
 } from '../src/split.js';
 
 const IDS = ['a', 'b', 'c'];
@@ -252,4 +252,22 @@ test('spare cents are spread around, so nobody always pays a cent more or less',
   const many = { ...g, expenses: Array.from({ length: 50 }, (_, i) => e(`x${i}`, 1001 + i * 37, 'a', i)) };
   const exact = many.expenses.reduce((s, x) => s + x.cents, 0) / 4;
   for (const id of all) assert.ok(Math.abs(personBreakdown(many, id).share - exact) <= 1, id);
+});
+
+test('shares are kept exact and each total is rounded once, whatever the order', () => {
+  const three = [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }, { id: 'c', name: 'C' }];
+  const e = (id, cents, paidBy, at) => ({ id, kind: 'expense', desc: id, cents, paidBy, split: { type: 'equal', among: ['a', 'b', 'c'] }, at, updatedAt: at });
+  // $10 three ways is 333.33… cents each: the totals still add up to $10.
+  const one = { id: 'g', name: 'G', members: three, expenses: [e('x', 1000, 'a', 1)] };
+  assert.deepEqual(exactShares(one).x, { a: 1000 / 3, b: 1000 / 3, c: 1000 / 3 });
+  assert.equal(Object.values(shareTotals(one)).reduce((s, c) => s + c, 0), 1000);
+  // Two such bills are $6.666… each: rounded once, not 2 × $3.33 + a stray cent.
+  const two = { ...one, expenses: [e('x', 1000, 'a', 1), e('y', 1000, 'b', 2)] };
+  assert.deepEqual(shareTotals(two), { a: 667, b: 667, c: 666 });
+  // The order bills are in, or were added in, makes no difference.
+  const bills = Array.from({ length: 12 }, (_, i) => e(`b${i}`, 997 + i * 113, ['a', 'b', 'c'][i % 3], i));
+  const fwd = balances({ ...one, expenses: bills });
+  const rev = balances({ ...one, expenses: [...bills].reverse().map((x, i) => ({ ...x, at: i })) });
+  assert.deepEqual(fwd, rev);
+  assert.equal(Object.values(fwd).reduce((s, c) => s + c, 0), 0);
 });
