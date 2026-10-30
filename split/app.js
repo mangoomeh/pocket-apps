@@ -1,7 +1,7 @@
 import { parseAmount } from '../src/cash.js';
 import {
   newId, sharesOf, expenseProblem, balances, settleUp, totalSpent, mergeGroups, encodeGroup, decodeGroup,
-  formatAmount, homeOf, inHome, CURRENCIES, rateFromTable, withCharges, summaryText, parsePayNow, payNowPayload,
+  formatAmount, homeOf, inHome, CURRENCIES, rateFromTable, chargesOf, personBreakdown, summaryText, parsePayNow, payNowPayload,
 } from '../src/split.js';
 import { $, esc, switchTab, toast } from '../shared/ui.js';
 
@@ -47,7 +47,8 @@ function resetDraft() {
   draft = { split: 'equal', among: new Set(ids), exact: {}, weights: Object.fromEntries(ids.map((id) => [id, 1])) };
   $('desc').value = '';
   $('amount').value = '';
-  $('charges').checked = false;
+  $('service').checked = false;
+  $('gst').checked = false;
   $('paid-by').innerHTML = '';
   $('paid-to').innerHTML = '';
   if (g) {
@@ -67,8 +68,11 @@ const isForeign = () => formCurrency() !== homeOf(group());
 function formCents() {
   const typed = parseAmount($('amount').value);
   if (typed == null) return null;
-  return formKind() === 'expense' && $('charges').checked ? withCharges(typed) : typed;
+  return formKind() === 'expense' ? chargesOf(typed, chargeRates()).total : typed;
 }
+
+// The ticked charges, for chargesOf.
+const chargeRates = () => ({ serviceBp: $('service').checked ? 1000 : 0, gstBp: $('gst').checked ? 900 : 0 });
 
 // Builds the expense the form describes (not yet saved).
 function formExpense() {
@@ -154,6 +158,7 @@ function render() {
   renderHeader();
   renderForm();
   renderExpenses();
+  renderYou();
   renderBalances();
   renderPeople();
 }
@@ -188,7 +193,7 @@ function renderHeader() {
   const g = group();
   $('eyebrow').textContent = g.name;
   $('headline').textContent = money(totalSpent(g));
-  $('subline').textContent = myLine(g) ?? `spent by ${liveMembers(g).length} people · set "Who are you?" under People`;
+  $('subline').textContent = myLine(g) ?? `spent by ${liveMembers(g).length} people`;
 }
 
 function options(g, selected) {
@@ -217,7 +222,9 @@ function renderForm() {
 
   const typed = parseAmount($('amount').value);
   const cur = formCurrency();
-  $('charges-total').textContent = $('charges').checked && typed ? `= ${formatAmount(withCharges(typed), cur)}` : '';
+  const ch = chargesOf(typed ?? 0, chargeRates());
+  const parts = [ch.service && `${formatAmount(ch.service, cur)} service charge`, ch.gst && `${formatAmount(ch.gst, cur)} GST`].filter(Boolean);
+  $('charges-total').textContent = typed && parts.length ? `Total ${formatAmount(ch.total, cur)} (${formatAmount(typed, cur)} + ${parts.join(' + ')})` : '';
   $('fx-row').hidden = !isForeign();
   if (isForeign()) {
     $('fx-from').textContent = cur;
@@ -298,6 +305,59 @@ function renderExpenses() {
   }).join('');
 }
 
+// The top of Summary: what this phone's person owes or is owed, which is usually all
+// someone opening a shared link wants to know. Asks who they are first.
+function renderYou() {
+  const g = group();
+  const card = $('you-card');
+  const people = liveMembers(g);
+  if (!g.me || !people.some((m) => m.id === g.me)) {
+    card.innerHTML = `<h2>Who are you?</h2>
+      <p class="hint">Tap your name to see what you owe or are owed. Only saved on this phone.</p>
+      <div class="who-btns">${people.map((m) => `<button class="secondary" data-me="${esc(m.id)}">${esc(m.name)}</button>`).join('')}</div>`;
+    return;
+  }
+  const b = personBreakdown(g, g.me);
+  const mine = currentTransfers().map((t, i) => ({ ...t, i })).filter((t) => t.from === g.me || t.to === g.me);
+  let head;
+  if (!mine.length) head = `<p class="you-big">You're all square 🎉</p>`;
+  else head = mine.map((t) => {
+    const owe = t.from === g.me;
+    const other = g.members.find((m) => m.id === (owe ? t.to : t.from));
+    const btns = owe
+      ? `${homeOf(g) === 'SGD' && parsePayNow(other?.paynow) ? `<button class="primary small" data-qr="${t.i}">Pay by PayNow</button>` : ''}
+         <button class="secondary small" data-paid="${t.i}">I've paid</button>`
+      : `<button class="secondary small" data-paid="${t.i}">${esc(other?.name ?? '?')} has paid me</button>`;
+    return `<div class="you-line ${owe ? 'owe' : 'owed'}">
+      <p class="you-big"><span>${owe ? `You owe <b>${esc(other?.name ?? '?')}</b>` : `<b>${esc(other?.name ?? '?')}</b> owes you`}</span>
+        <span class="amt ${owe ? 'neg' : 'pos'}">${money(t.cents)}</span></p>
+      <div class="row-btns">${btns}</div>
+    </div>`;
+  }).join('');
+  const rows = b.items.map((it) => {
+    if (it.kind === 'payment') {
+      return it.to
+        ? `<li><div class="top"><span>💸 You paid ${esc(memberName(g, it.to))}</span><span class="amt pos">+${money(it.cents)}</span></div><div class="meta">${fmtDate(it.at)}</div></li>`
+        : `<li><div class="top"><span>💸 ${esc(memberName(g, it.from))} paid you</span><span class="amt neg">−${money(it.cents)}</span></div><div class="meta">${fmtDate(it.at)}</div></li>`;
+    }
+    const who = it.paid ? 'You paid' : `${esc(memberName(g, it.paidBy))} paid`;
+    return `<li><div class="top"><span>${esc(it.desc)}</span><span class="amt">${it.share ? money(it.share) : '—'}</span></div>
+      <div class="meta">${who} ${money(it.cents)} · ${fmtDate(it.at)}${it.share ? '' : ' · not in your split'}</div></li>`;
+  }).join('');
+  const totals = [
+    ['Your share of everything', money(b.share)],
+    ['You paid for the group', money(b.paid)],
+    b.sent && ['Payments you sent', money(b.sent)],
+    b.received && ['Payments you got', money(b.received)],
+  ].filter(Boolean).map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+  card.innerHTML = `<p class="eyebrow">${esc(memberName(g, g.me))} · <button class="link" data-me="">Not you?</button></p>
+    ${head}
+    ${b.items.length ? `<details class="you-how"><summary>How it adds up</summary>
+      <dl class="summary">${totals}</dl>
+      <p class="hint">Your share of each expense:</p>
+      <ul class="history">${rows}</ul></details>` : ''}`;
+}
+
 function renderBalances() {
   const g = group();
   const net = balances(g);
@@ -341,11 +401,12 @@ function renderPeople() {
 
 // ---- Actions ----------------------------------------------------------------------------
 
-function openGroup(id) {
+// Opens on Summary once there is something to sum up, else on adding the first expense.
+function openGroup(id, tab) {
   state.current = id;
   save();
   resetDraft();
-  switchTab('expenses');
+  switchTab(tab ?? (pendingAdd || !group().expenses.some((e) => !e.deleted) ? 'expenses' : 'balances'));
   if (pendingAdd) {
     // A bill handed over from another app (e.g. Sushiro): already nett, in SGD.
     $('desc').value = pendingAdd.desc;
@@ -577,11 +638,10 @@ async function importFromHash() {
     toast(changed ? `Updated: ${changed} new or changed expense${changed === 1 ? '' : 's'}.` : 'Already up to date.');
   } else {
     state.groups.unshift({ ...incoming, me: null });
-    toast(`Added "${incoming.name}". Pick who you are under People.`);
+    toast(`Added "${incoming.name}".`);
   }
   save();
-  openGroup(incoming.id);
-  if (!state.groups.find((g) => g.id === incoming.id).me) switchTab('people');
+  openGroup(incoming.id, 'balances');
 }
 
 // ---- Wiring -----------------------------------------------------------------------------
@@ -601,7 +661,7 @@ $('create-group').addEventListener('click', createGroup);
 document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 
 for (const id of ['desc', 'amount']) $(id).addEventListener('input', renderForm);
-for (const id of ['charges', 'paid-by', 'paid-to']) $(id).addEventListener('change', renderForm);
+for (const id of ['service', 'gst', 'paid-by', 'paid-to']) $(id).addEventListener('change', renderForm);
 $('currency').addEventListener('change', () => { $('rate').value = ''; renderForm(); fetchRate(); });
 $('rate').addEventListener('input', renderForm);
 $('home-currency').addEventListener('change', () => {
@@ -651,17 +711,27 @@ $('settle-list').addEventListener('click', (ev) => {
   if (paid) recordPayment(t[paid.dataset.paid]);
   if (qr) showQr(t[qr.dataset.qr]);
 });
+$('you-card').addEventListener('click', (ev) => {
+  const t = currentTransfers();
+  const me = ev.target.closest('[data-me]');
+  const paid = ev.target.closest('[data-paid]');
+  const qr = ev.target.closest('[data-qr]');
+  if (me) setMe(me.dataset.me || null);
+  if (paid) recordPayment(t[paid.dataset.paid]);
+  if (qr) showQr(t[qr.dataset.qr]);
+});
 $('qr-close').addEventListener('click', () => $('qr-dialog').close());
 $('qr-paid').addEventListener('click', () => { $('qr-dialog').close(); if (qrTransfer) recordPayment(qrTransfer); });
 $('copy-summary').addEventListener('click', copySummary);
 
 $('share-link').addEventListener('click', shareLink);
-$('me').addEventListener('change', () => {
-  group().me = $('me').value || null;
+function setMe(id) {
+  group().me = id;
   if (!editingId) $('paid-by').innerHTML = ''; // so "Paid by" now defaults to you
   save();
   render();
-});
+}
+$('me').addEventListener('change', () => setMe($('me').value || null));
 $('group-name').addEventListener('change', () => {
   const g = group();
   g.name = $('group-name').value.trim() || g.name;

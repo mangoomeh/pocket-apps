@@ -45,13 +45,13 @@
   <!-- One group -->
   <div id="view-group" hidden>
     <nav class="tabs" role="tablist">
-      <button role="tab" data-tab="expenses" aria-selected="true">Expenses</button>
-      <button role="tab" data-tab="balances">Balances</button>
+      <button role="tab" data-tab="balances" aria-selected="true">Summary</button>
+      <button role="tab" data-tab="expenses">Expenses</button>
       <button role="tab" data-tab="people">People</button>
     </nav>
 
     <main>
-      <section data-panel="expenses">
+      <section data-panel="expenses" hidden>
         <div class="card" id="expense-form">
           <h2 id="form-title">Add an expense</h2>
           <div class="seg" role="radiogroup" aria-label="Type">
@@ -75,10 +75,11 @@
             <span id="fx-to"></span>
             <small id="fx-note"></small>
           </div>
-          <label class="check-row" id="charges-row">
-            <input type="checkbox" id="charges">
-            <span>Add 10% service charge + 9% GST <small id="charges-total"></small></span>
-          </label>
+          <div class="charges" id="charges-row">
+            <label class="check-row"><input type="checkbox" id="service"><span>Add 10% service charge</span></label>
+            <label class="check-row"><input type="checkbox" id="gst"><span>Add 9% GST</span></label>
+            <small id="charges-total"></small>
+          </div>
           <label class="field">
             <span id="paid-by-label">Paid by</span>
             <select id="paid-by"></select>
@@ -110,9 +111,10 @@
         </div>
       </section>
 
-      <section data-panel="balances" hidden>
+      <section data-panel="balances">
+        <div class="card you-card" id="you-card" aria-live="polite"></div>
         <div class="card">
-          <h2>Balances</h2>
+          <h2>Everyone</h2>
           <dl class="summary" id="balance-list"></dl>
         </div>
         <div class="card">

@@ -66,8 +66,11 @@ Shares costs in a group of friends (a trip, a flat, a dinner) and works out who 
 - **Groups:** name a group and list the people. You can have several groups.
 - **Expenses:** what it was for, the amount, who paid, and how to split it: **equally** among the people you tick,
   by **exact amounts**, or by **shares** (e.g. 2 shares for someone who had two nights). Each person's part is shown as
-  you type. "Add 10% service charge + 9% GST" works out the nett total from the menu prices. Tap an expense to edit or
-  delete it.
+  you type. Separate ticks for "10% service charge" and "9% GST" work out the nett total from the menu prices
+  (GST is charged on the service charge too). Tap an expense to edit or delete it.
+- **Summary:** the first thing a group opens on. It asks "Who are you?" once (one tap on your name), then shows what you
+  owe or are owed and to whom, with PayNow and "I've paid" buttons, and a folded "How it adds up" list of your share
+  of each expense.
 - **Balances and settle up:** who is owed and who owes, and the fewest payments that square everyone up (at most one
   fewer than the number of people). "Mark as paid" records a payment; payments can also be added by hand.
 - **PayNow QR:** add a PayNow mobile number or UEN to a person, and each payment to them gets a PayNow QR for the exact

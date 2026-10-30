@@ -104,6 +104,32 @@ export function balances(group) {
   return net;
 }
 
+// How one person's balance adds up: the expenses they paid for or have a share of
+// (newest first, in the home currency), the payments they sent or got, and the totals.
+// paid − share + sent − received is their balance.
+export function personBreakdown(group, id) {
+  const allIds = group.members.map((m) => m.id);
+  const out = { items: [], paid: 0, share: 0, sent: 0, received: 0 };
+  for (const raw of live(group.expenses)) {
+    const e = inHome(raw, homeOf(group));
+    if (e.kind === 'payment') {
+      const to = Object.keys(e.split.shares)[0];
+      if (e.paidBy === id) { out.sent += e.cents; out.items.push({ id: e.id, kind: 'payment', to, cents: e.cents, at: e.at }); }
+      if (to === id) { out.received += e.cents; out.items.push({ id: e.id, kind: 'payment', from: e.paidBy, cents: e.cents, at: e.at }); }
+      continue;
+    }
+    const paid = e.paidBy === id ? e.cents : 0;
+    const share = sharesOf(e, allIds)[id] || 0;
+    if (!paid && !share) continue;
+    out.paid += paid;
+    out.share += share;
+    out.items.push({ id: e.id, kind: 'expense', desc: e.desc, paidBy: e.paidBy, cents: e.cents, paid, share, at: e.at });
+  }
+  out.items.sort((a, b) => b.at - a.at);
+  out.net = out.paid - out.share + out.sent - out.received;
+  return out;
+}
+
 // Fewest-ish payments to settle everyone up: the biggest debtor pays the biggest
 // creditor until one of them is square, repeated. Gives at most n − 1 payments.
 export function settleUp(net, memberIds = Object.keys(net)) {
@@ -151,12 +177,84 @@ export function mergeGroups(mine, theirs) {
 
 // The group as a compact string for the link's #hash. Only the shared fields are
 // included (not who "me" is on this phone).
+//
+// Links use a short form (v2): records become arrays without key names, people in
+// expenses are referred to by their place in the member list, and times are counted
+// from the earliest one. Each record is rebuilt and compared before it goes in, so the
+// link always gives back exactly the same group; a record that doesn't fit the short
+// form travels as it is. Old v1 links (a plain object) still open.
 export function encodeGroup(group) {
-  return encodeData({ v: 1, ...head(group), members: group.members, expenses: group.expenses });
+  const ids = group.members.map((m) => m.id);
+  const times = [...group.members, ...group.expenses].flatMap((r) => [r.at, r.updatedAt]).filter(Number.isFinite);
+  const base = times.length ? Math.min(...times) : 0;
+  const pack = (record, short, unpack) => {
+    try {
+      const packed = short(record);
+      if (JSON.stringify(unpack(packed, ids, base)) === JSON.stringify(record)) return packed;
+    } catch { /* doesn't fit the short form */ }
+    return record;
+  };
+  return encodeData([2, group.id, group.name, group.currency || 0, group.tripId || 0, group.updatedAt || 0, base,
+    group.members.map((m) => pack(m, (x) => packMember(x, base), unpackMember)),
+    group.expenses.map((e) => pack(e, (x) => packExpense(x, ids, base), unpackExpense))]);
+}
+
+const SPLITS = ['equal', 'weights', 'exact'];
+const SPLIT_KEY = { equal: 'among', weights: 'weights', exact: 'shares' };
+
+function packMember(m, base) {
+  const out = [m.id, m.name, m.updatedAt - base];
+  if (m.deleted) out.push(1);
+  return out;
+}
+function unpackMember([id, name, t, deleted], ids, base) {
+  const m = { id, name, updatedAt: base + t };
+  if (deleted) m.deleted = true;
+  return m;
+}
+
+function packExpense(e, ids, base) {
+  const who = (id) => { const i = ids.indexOf(id); if (i < 0) throw new Error('unknown member'); return i; };
+  const t = SPLITS.indexOf(e.split.type);
+  const split = t === 0
+    ? [0, ...e.split.among.map(who)]
+    : [t, ...Object.entries(e.split[SPLIT_KEY[e.split.type]]).flatMap(([id, n]) => [who(id), n])];
+  const out = [e.id, e.kind === 'payment' ? 1 : 0, e.desc, e.cents, who(e.paidBy), split, e.at - base, e.updatedAt - e.at];
+  if (e.currency || e.deleted) out.push(e.currency || 0, e.rate || 0);
+  if (e.deleted) out.push(1);
+  return out;
+}
+function unpackExpense([id, kind, desc, cents, payer, [t, ...rest], at, upd, currency, rate, deleted], ids, base) {
+  const type = SPLITS[t];
+  let detail = rest.map((i) => ids[i]);
+  if (t > 0) {
+    detail = {};
+    for (let i = 0; i < rest.length; i += 2) detail[ids[rest[i]]] = rest[i + 1];
+  }
+  const e = { id, kind: kind ? 'payment' : 'expense', desc, cents, paidBy: ids[payer], split: { type, [SPLIT_KEY[type]]: detail }, at: base + at, updatedAt: base + at + upd };
+  if (currency) Object.assign(e, { currency, rate });
+  if (deleted) e.deleted = true;
+  return e;
+}
+
+// Short-form v2 back to a v1-shaped object.
+function unpackGroup([, id, name, currency, tripId, updatedAt, base, members, expenses]) {
+  const g = { v: 1, id, name, updatedAt, members: [], expenses: [] };
+  if (currency) g.currency = currency;
+  if (tripId) g.tripId = tripId;
+  g.members = members.map((m) => (Array.isArray(m) ? unpackMember(m, null, base) : m));
+  const ids = g.members.map((m) => m.id);
+  g.expenses = expenses.map((e) => (Array.isArray(e) ? unpackExpense(e, ids, base) : e));
+  return g;
 }
 
 export async function decodeGroup(text) {
-  const g = await decodeData(text);
+  let g = await decodeData(text);
+  try {
+    if (Array.isArray(g) && g[0] === 2) g = unpackGroup(g);
+  } catch {
+    return null;
+  }
   if (!g || g.v !== 1 || !g.id || !Array.isArray(g.members) || !Array.isArray(g.expenses)) return null;
   const group = { ...head(g), name: String(g.name || 'Group'), updatedAt: g.updatedAt || 0, members: g.members, expenses: g.expenses };
   if (!CURRENCIES.includes(group.currency)) delete group.currency;
@@ -172,11 +270,15 @@ export function rateFromTable(table, currency) {
   return perHome > 0 ? Number((1 / perHome).toPrecision(6)) : null;
 }
 
-// Adds Singapore service charge then GST on top (rates in basis points, 1000 = 10%).
-export function withCharges(cents, { serviceBp = 1000, gstBp = 900 } = {}) {
+// Singapore service charge then GST on top (rates in basis points, 1000 = 10%), each
+// optional: GST is charged on the service charge too. Returns each part and the total.
+export function chargesOf(cents, { serviceBp = 1000, gstBp = 900 } = {}) {
   const service = Math.round((cents * serviceBp) / 10000);
-  return cents + service + Math.round(((cents + service) * gstBp) / 10000);
+  const gst = Math.round(((cents + service) * gstBp) / 10000);
+  return { service, gst, total: cents + service + gst };
 }
+
+export const withCharges = (cents, rates) => chargesOf(cents, rates).total;
 
 // A plain-text summary to paste into a chat.
 export function summaryText(group, url) {

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   sharesOf, expenseProblem, balances, settleUp, totalSpent, mergeGroups, encodeGroup, decodeGroup,
-  withCharges, summaryText, crc16, parsePayNow, payNowPayload, formatAmount, inHome, rateFromTable,
+  withCharges, chargesOf, personBreakdown, summaryText, crc16, parsePayNow, payNowPayload, formatAmount, inHome, rateFromTable,
 } from '../src/split.js';
 
 const IDS = ['a', 'b', 'c'];
@@ -92,6 +92,9 @@ test('a group survives the share link round trip', async () => {
 test('service charge then GST', () => {
   assert.equal(withCharges(10000), 11990);
   assert.equal(withCharges(10000, { serviceBp: 0, gstBp: 900 }), 10900);
+  assert.deepEqual(chargesOf(10000, { serviceBp: 1000, gstBp: 0 }), { service: 1000, gst: 0, total: 11000 });
+  assert.deepEqual(chargesOf(10000), { service: 1000, gst: 990, total: 11990 });
+  assert.equal(withCharges(10000, { serviceBp: 0, gstBp: 0 }), 10000);
 });
 
 test('summary text for a chat', () => {
@@ -155,4 +158,51 @@ test('rates come from a table based on the home currency', () => {
 test('the home currency travels in the link', async () => {
   const back = await decodeGroup(await encodeGroup({ ...group([]), currency: 'MYR' }));
   assert.equal(back.currency, 'MYR');
+});
+
+test('one person\'s breakdown adds up to their balance', () => {
+  const pay = { id: 'p', kind: 'payment', desc: 'Payment', cents: 1000, paidBy: 'b', split: { type: 'exact', shares: { a: 1000 } }, at: 5, updatedAt: 5 };
+  const g = group([
+    exp('dinner', 'a', 9000, equal(), { at: 2 }),
+    exp('taxi', 'b', 2000, equal(['b', 'c']), { at: 3 }),
+    exp('gone', 'b', 5000, equal(), { deleted: true }),
+    pay,
+  ]);
+  const net = balances(g);
+  for (const id of IDS) assert.equal(personBreakdown(g, id).net, net[id], id);
+  const a = personBreakdown(g, 'a');
+  assert.deepEqual(a.items.map((i) => i.id), ['p', 'dinner'], 'newest first, only what involves Ann');
+  assert.equal(a.paid, 9000);
+  assert.equal(a.share, 3000);
+  assert.equal(a.received, 1000);
+  const b = personBreakdown(g, 'b');
+  assert.equal(b.sent, 1000);
+  assert.equal(b.items.find((i) => i.id === 'taxi').share, 1000);
+});
+
+test('share links are short and give back exactly the same group', async () => {
+  const t = 1761800000000;
+  const ms = ['Ann', 'Ben', 'Cat'].map((name, i) => ({ id: `m${i}xxxxxx`, name, updatedAt: t + i }));
+  ms[2].deleted = true;
+  const [a, b, c] = ms.map((m) => m.id);
+  const expenses = [
+    { id: 'e1', kind: 'expense', desc: 'Dinner', cents: 9000, paidBy: a, split: { type: 'equal', among: [a, b, c] }, at: t + 10, updatedAt: t + 99 },
+    { id: 'e2', kind: 'expense', desc: 'Massage', cents: 120000, paidBy: b, split: { type: 'weights', weights: { a: 0, [a]: 2, [b]: 1 } }, at: t + 20, updatedAt: t + 20, currency: 'THB', rate: 0.0385 },
+    { id: 'e3', kind: 'expense', desc: 'Gone', cents: 100, paidBy: a, split: { type: 'exact', shares: { [b]: 100 } }, at: t + 30, updatedAt: t + 40, deleted: true },
+    { id: 'e4', kind: 'payment', desc: 'Payment', cents: 500, paidBy: b, split: { type: 'exact', shares: { [a]: 500 } }, at: t + 50, updatedAt: t + 50 },
+    { id: 'old', paidBy: a, cents: 1, split: equal([a]), desc: 'no kind', at: 1, updatedAt: 1 },
+  ];
+  const g = { id: 'g', name: 'Bangkok', currency: 'SGD', tripId: 't1', updatedAt: t, members: ms, expenses, me: a };
+  const text = await encodeGroup(g);
+  const back = await decodeGroup(text);
+  assert.equal(JSON.stringify(back.members), JSON.stringify(ms));
+  assert.equal(JSON.stringify(back.expenses), JSON.stringify(expenses), 'same records, same key order');
+  assert.equal(back.tripId, 't1');
+  assert.equal(back.me, undefined);
+  assert.equal(mergeGroups({ ...back, me: a }, back).changed, 0);
+  // Shorter than the old long form, which still opens.
+  const { encodeData } = await import('../src/sync.js');
+  const v1 = await encodeData({ v: 1, id: 'g', name: 'Bangkok', currency: 'SGD', updatedAt: t, members: ms, expenses });
+  assert.ok(text.length < v1.length, `${text.length} < ${v1.length}`);
+  assert.equal(JSON.stringify((await decodeGroup(v1)).expenses), JSON.stringify(expenses));
 });

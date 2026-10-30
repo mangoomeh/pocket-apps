@@ -1342,6 +1342,18 @@ body.theme-chat { height: 100dvh; display: flex; flex-direction: column; overflo
 .check-row input, .big-check { width: 1.35rem; height: 1.35rem; accent-color: var(--accent); flex: none; }
 .check-row small { color: var(--muted); font-weight: 600; }
 .split-rows { margin-top: .5rem; }
+.charges .check-row { margin-top: .55rem; }
+.charges small { display: block; margin: .35rem 0 0 1.9rem; color: var(--muted); font-weight: 600; font-size: .85rem; }
+.who-btns { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
+.who-btns button { flex: 1 1 8rem; font-size: 1.05rem; padding: .8rem 1rem; }
+.you-card .eyebrow { margin: 0 0 .25rem; }
+.you-card button.link { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
+.you-line + .you-line { border-top: 1px solid var(--border); margin-top: .7rem; padding-top: .7rem; }
+.you-big { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .25rem .75rem; margin: .2rem 0; font-size: 1.15rem; }
+.you-big .amt { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.you-line .row-btns { justify-content: flex-start; }
+.you-how { margin-top: .9rem; }
+.you-how summary { cursor: pointer; font-weight: 700; color: var(--accent); }
 .cents-input {
   width: 6.5rem;
   font: inherit;
