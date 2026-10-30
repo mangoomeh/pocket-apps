@@ -1,6 +1,6 @@
 import { parseAmount } from '../src/cash.js';
 import {
-  newId, sharesOf, expenseProblem, balances, settleUp, totalSpent, mergeGroups, encodeGroup, decodeGroup,
+  newId, sharesOf, groupShares, expenseProblem, balances, settleUp, totalSpent, mergeGroups, encodeGroup, decodeGroup,
   formatAmount, homeOf, inHome, CURRENCIES, rateFromTable, chargesOf, personBreakdown, summaryText, parsePayNow, payNowPayload,
   encodeSummary, decodeSummary,
 } from '../src/split.js';
@@ -285,9 +285,10 @@ function renderExpenses() {
   const ids = g.members.map((m) => m.id);
   const home = homeOf(g);
   const list = g.expenses.filter((e) => !e.deleted).sort((a, b) => b.at - a.at);
+  const all = groupShares(g);
   $('expenses-empty').hidden = list.length > 0;
   $('expense-list').innerHTML = list.map((e) => {
-    const shares = sharesOf(e, ids);
+    const shares = all[e.id];
     let title;
     let meta;
     if (e.kind === 'payment') {
@@ -301,7 +302,7 @@ function renderExpenses() {
       meta = `${esc(memberName(g, e.paidBy))} paid · split ${n} way${n === 1 ? '' : 's'} · ${fmtDate(e.at)}`;
       if (h !== e) meta += ` · ≈ ${money(h.cents)}`;
       if (g.me) {
-        const mine = (h.paidBy === g.me ? h.cents : 0) - (sharesOf(h, ids)[g.me] || 0);
+        const mine = (h.paidBy === g.me ? h.cents : 0) - (shares[g.me] || 0);
         if (mine > 0) meta += ` · <span class="pos">you lent ${money(mine)}</span>`;
         if (mine < 0) meta += ` · <span class="neg">you owe ${money(-mine)}</span>`;
       }

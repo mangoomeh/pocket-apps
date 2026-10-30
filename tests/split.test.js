@@ -239,3 +239,17 @@ test('a read-only summary link gives everyone the same balances, and is much sho
   assert.equal(await decodeSummary('not-a-link'), null);
   assert.equal(await decodeSummary(await encodeGroup(g)), null, 'an editable link is not a summary');
 });
+
+test('spare cents are spread around, so nobody always pays a cent more or less', () => {
+  const four = [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }, { id: 'c', name: 'C' }, { id: 'd', name: 'D' }];
+  const all = ['a', 'b', 'c', 'd'];
+  const e = (id, cents, paidBy, at) => ({ id, kind: 'expense', desc: id, cents, paidBy, split: { type: 'equal', among: all }, at, updatedAt: at });
+  // $16.35 + $32.70 + $125.35 = $174.40, exactly $43.60 each.
+  const g = { id: 'g', name: 'Food', members: four, expenses: [e('wings', 1635, 'c', 3), e('pizza', 3270, 'd', 2), e('food', 12535, 'a', 1)] };
+  assert.deepEqual(balances(g), { a: 12535 - 4360, b: -4360, c: 1635 - 4360, d: 3270 - 4360 });
+  for (const id of all) assert.equal(personBreakdown(g, id).share, 4360, id);
+  // Many uneven bills: each person's total stays within a cent of their exact share.
+  const many = { ...g, expenses: Array.from({ length: 50 }, (_, i) => e(`x${i}`, 1001 + i * 37, 'a', i)) };
+  const exact = many.expenses.reduce((s, x) => s + x.cents, 0) / 4;
+  for (const id of all) assert.ok(Math.abs(personBreakdown(many, id).share - exact) <= 1, id);
+});
