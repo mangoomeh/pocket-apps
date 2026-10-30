@@ -235,7 +235,9 @@ const TIMEOUT_MS = 4000;
 const KEEP_REMOTE = [/^https:\/\/cdn\.jsdelivr\.net\/npm\/qrcode-generator@/];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
+  // 'reload' skips the browser's HTTP cache (GitHub Pages lets it keep files for 10 minutes),
+  // so a new version never saves an old copy of a file next to new ones.
+  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES.map((f) => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -248,7 +250,9 @@ self.addEventListener('activate', (event) => {
 
 async function networkFirst(request) {
   const cache = await caches.open(CACHE);
-  const fromNetwork = fetch(request).then((res) => {
+  // 'no-cache' asks the server whether the file changed instead of trusting the browser's
+  // HTTP cache, so a page and its script always come from the same version.
+  const fromNetwork = fetch(request, { cache: 'no-cache' }).then((res) => {
     if (res.ok) cache.put(request, res.clone());
     return res;
   });
