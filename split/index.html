@@ -76,8 +76,18 @@
             <small id="fx-note"></small>
           </div>
           <div class="charges" id="charges-row">
-            <label class="check-row"><input type="checkbox" id="service"><span>Add 10% service charge</span></label>
-            <label class="check-row"><input type="checkbox" id="gst"><span>Add 9% GST</span></label>
+            <div class="check-row">
+              <input type="checkbox" id="service" aria-label="Add service charge">
+              <label for="service">Add</label>
+              <input class="rate-input" id="service-rate" inputmode="decimal" autocomplete="off" value="10" aria-label="Service charge %">
+              <label for="service">% service charge</label>
+            </div>
+            <div class="check-row">
+              <input type="checkbox" id="gst" aria-label="Add GST">
+              <label for="gst">Add</label>
+              <input class="rate-input" id="gst-rate" inputmode="decimal" autocomplete="off" value="9" aria-label="GST %">
+              <label for="gst">% GST</label>
+            </div>
             <small id="charges-total"></small>
           </div>
           <label class="field">

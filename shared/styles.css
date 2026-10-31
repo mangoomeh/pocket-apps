@@ -1342,7 +1342,9 @@ body.theme-chat { height: 100dvh; display: flex; flex-direction: column; overflo
 .check-row input, .big-check { width: 1.35rem; height: 1.35rem; accent-color: var(--accent); flex: none; }
 .check-row small { color: var(--muted); font-weight: 600; }
 .split-rows { margin-top: .5rem; }
-.charges .check-row { margin-top: .55rem; }
+.charges .check-row { margin-top: .55rem; gap: .4rem; }
+.charges .check-row input[type="checkbox"] { margin-right: .15rem; }
+.check-row .rate-input { width: 3.6rem; height: auto; flex: none; accent-color: auto; font: inherit; text-align: right; padding: .3rem .45rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-variant-numeric: tabular-nums; }
 .charges small { display: block; margin: .35rem 0 0 1.9rem; color: var(--muted); font-weight: 600; font-size: .85rem; }
 .who-btns { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
 .who-btns button { flex: 1 1 8rem; font-size: 1.05rem; padding: .8rem 1rem; }

@@ -60,6 +60,9 @@ function resetDraft() {
   $('amount').value = '';
   $('service').checked = false;
   $('gst').checked = false;
+  // The rates last used in this group (e.g. 5% service, or 6% SST abroad), else Singapore's.
+  $('service-rate').value = String(g?.serviceRate ?? 10);
+  $('gst-rate').value = String(g?.gstRate ?? 9);
   $('paid-by').innerHTML = '';
   $('paid-to').innerHTML = '';
   if (g) {
@@ -83,7 +86,15 @@ function formCents() {
 }
 
 // The ticked charges, for chargesOf.
-const chargeRates = () => ({ serviceBp: $('service').checked ? 1000 : 0, gstBp: $('gst').checked ? 900 : 0 });
+// A typed percentage (0–100, decimals allowed), or null if it isn't one.
+function ratePercent(id) {
+  const n = Number($(id).value.replace(',', '.').replace('%', '').trim());
+  return $(id).value.trim() !== '' && Number.isFinite(n) && n >= 0 && n <= 100 ? n : null;
+}
+const chargeRates = () => ({
+  serviceBp: $('service').checked ? Math.round((ratePercent('service-rate') ?? 0) * 100) : 0,
+  gstBp: $('gst').checked ? Math.round((ratePercent('gst-rate') ?? 0) * 100) : 0,
+});
 
 // Builds the expense the form describes (not yet saved).
 function formExpense() {
@@ -155,6 +166,9 @@ async function fetchRate() {
 
 function formProblem(e) {
   if (e.kind === 'payment' && Object.keys(e.split.shares)[0] === e.paidBy) return 'Pick two different people.';
+  if (e.kind === 'expense' && [['service', 'service-rate'], ['gst', 'gst-rate']].some(([box, rate]) => $(box).checked && ratePercent(rate) == null)) {
+    return 'Enter a percentage from 0 to 100 for the charge.';
+  }
   return expenseProblem(e);
 }
 
@@ -504,6 +518,8 @@ function saveExpense() {
   const i = g.expenses.findIndex((x) => x.id === e.id);
   if (i >= 0) g.expenses[i] = e; else g.expenses.push(e);
   if (e.kind !== 'payment') g.lastCurrency = e.currency || homeOf(g);
+  if (e.kind !== 'payment' && $('service').checked && ratePercent('service-rate') != null) g.serviceRate = ratePercent('service-rate');
+  if (e.kind !== 'payment' && $('gst').checked && ratePercent('gst-rate') != null) g.gstRate = ratePercent('gst-rate');
   save();
   toast(editingId ? 'Saved.' : `${e.kind === 'payment' ? 'Payment' : formatAmount(e.cents, e.currency || homeOf(g))} added.`);
   resetDraft();
@@ -743,6 +759,10 @@ document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('cli
 
 for (const id of ['desc', 'amount']) $(id).addEventListener('input', renderForm);
 for (const id of ['service', 'gst', 'paid-by', 'paid-to']) $(id).addEventListener('change', renderForm);
+// Typing a rate ticks its box.
+for (const [rate, box] of [['service-rate', 'service'], ['gst-rate', 'gst']]) {
+  $(rate).addEventListener('input', () => { $(box).checked = $(rate).value.trim() !== ''; renderForm(); });
+}
 $('currency').addEventListener('change', () => { $('rate').value = ''; renderForm(); fetchRate(); });
 $('rate').addEventListener('input', renderForm);
 $('home-currency').addEventListener('change', () => {

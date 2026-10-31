@@ -66,8 +66,9 @@ Shares costs in a group of friends (a trip, a flat, a dinner) and works out who 
 - **Groups:** name a group and list the people. You can have several groups.
 - **Expenses:** what it was for, the amount, who paid, and how to split it: **equally** among the people you tick,
   by **exact amounts**, or by **shares** (e.g. 2 shares for someone who had two nights). Each person's part is shown as
-  you type. Separate ticks for "10% service charge" and "9% GST" work out the nett total from the menu prices
-  (GST is charged on the service charge too). Tap an expense to edit or delete it. Shares are kept exact (a $125.35
+  you type. Separate ticks for service charge and GST work out the nett total from the menu prices (GST is
+  charged on the service charge too). The rates start at 10% and 9% and can be changed, e.g. to 6% SST abroad; each
+  group remembers the last ones used. Tap an expense to edit or delete it. Shares are kept exact (a $125.35
   bill four ways is $31.3375 each) and each person's total is rounded to the cent only once, at the end, in a way
   that still adds up to what was spent.
 - **Summary:** the first thing a group opens on. It asks "Who are you?" once (one tap on your name), then shows what you

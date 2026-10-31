@@ -3,7 +3,7 @@
 // The file list and VERSION are written by tools/build-sw.js (`npm run sw`); don't edit them by hand.
 
 // <files>
-const VERSION = "62b2ccccd628";
+const VERSION = "04ae8b8125b9";
 const FILES = [
   "./",
   "petty-cash/",

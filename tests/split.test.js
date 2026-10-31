@@ -95,6 +95,9 @@ test('service charge then GST', () => {
   assert.deepEqual(chargesOf(10000, { serviceBp: 1000, gstBp: 0 }), { service: 1000, gst: 0, total: 11000 });
   assert.deepEqual(chargesOf(10000), { service: 1000, gst: 990, total: 11990 });
   assert.equal(withCharges(10000, { serviceBp: 0, gstBp: 0 }), 10000);
+  // Other rates, e.g. 5% service and Malaysia's 6% SST.
+  assert.deepEqual(chargesOf(10000, { serviceBp: 500, gstBp: 600 }), { service: 500, gst: 630, total: 11130 });
+  assert.equal(withCharges(10000, { serviceBp: 1250, gstBp: 850 }), 12206);
 });
 
 test('summary text for a chat', () => {
