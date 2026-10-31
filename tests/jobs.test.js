@@ -135,6 +135,7 @@ test('the question bank is complete, searchable and picks fresh questions to pra
   for (const q of QUESTIONS) assert.ok(CATEGORIES.some((c) => c.id === q.cat) && q.q.endsWith('?') || q.q.endsWith('.'), q.id);
   const custom = [{ id: 'my1', cat: 'behavioural', q: 'Why did you leave Acme?' }];
   assert.equal(questionList(custom, { cat: 'mine' }).length, 1);
+  assert.equal(questionList(custom, { cat: 'behavioural' }).filter((q) => q.mine).length, 0, 'your own questions are a group of their own');
   assert.equal(questionList(custom, { cat: 'all' }).length, QUESTIONS.length + 1);
   assert.ok(questionList(custom, { query: 'salary' }).every((q) => /salary/i.test(q.q + q.tip)));
   assert.ok(questionList([], { cat: 'ask' }).every((q) => q.cat === 'ask'));
@@ -167,6 +168,12 @@ test('prep: progress, stories and the checklist for one interview', async () => 
   );
   assert.equal(full.done, 6);
   assert.equal(prepSteps({ stories: ['s1', 'gone'] }, { stories: [st] }).steps.find((x) => x.id === 'stories').done, false, 'deleted stories do not count');
+  // Your own choice of questions replaces the six defaults.
+  const picked = prepSteps({ qids: ['my1', 'beh-9'] }, { answers: { my1: 'yes' } }).steps.find((x) => x.id === 'core');
+  assert.equal(picked.detail, '1 of 2 answers drafted');
+  assert.equal(picked.done, false);
+  assert.equal(prepSteps({ qids: ['my1'] }, { answers: { my1: 'yes' } }).steps.find((x) => x.id === 'core').done, true);
+  assert.equal(prepSteps({ qids: [] }, {}).steps.find((x) => x.id === 'core').detail, 'None chosen yet');
   const T = '2026-10-31';
   const jobs = [
     { company: 'A', stage: 'interview', nextDate: '' },

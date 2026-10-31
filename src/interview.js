@@ -86,7 +86,7 @@ export const STAR = [
 // The built-in questions plus the user's own, filtered by category ('all', 'mine' or an id)
 // and a search across question and tip.
 export function questionList(custom = [], { cat = 'all', query = '' } = {}) {
-  const mine = custom.map((c) => ({ ...c, tip: c.tip || '', mine: true }));
+  const mine = custom.map((c) => ({ ...c, cat: 'mine', tip: c.tip || '', mine: true }));
   const q = query.trim().toLowerCase();
   return [...mine, ...QUESTIONS].filter((x) => (cat === 'all' || (cat === 'mine' ? x.mine : x.cat === cat))
     && (!q || x.q.toLowerCase().includes(q) || x.tip.toLowerCase().includes(q)));
@@ -140,8 +140,11 @@ export const storiesFor = (stories, qid) => stories.filter((st) => (st.qids || [
 
 // ---- Prep for one interview ------------------------------------------------------------------
 
-// The questions almost every interview includes, to have an answer for.
+// The questions almost every interview includes: the starting choice of what to prepare.
 export const CORE = ['intro-1', 'mot-6', 'str-1', 'str-2', 'beh-1', 'prac-1'];
+
+// The questions chosen for one interview (CORE until you pick your own).
+export const chosenQuestions = (jobPrep = {}) => (Array.isArray(jobPrep.qids) ? jobPrep.qids : CORE);
 
 export const LOGISTICS = [
   ['when', 'Time and place (or video link) confirmed'],
@@ -152,21 +155,22 @@ export const LOGISTICS = [
 ];
 
 export function freshJobPrep() {
-  return { research: '', whyCompany: '', whyRole: '', stories: [], ask: [], askOwn: '', logistics: {} };
+  return { research: '', whyCompany: '', whyRole: '', qids: null, stories: [], ask: [], askOwn: '', logistics: {} };
 }
 
 // The checklist for one interview, each step marked done, and how many are done.
 export function prepSteps(jobPrep = {}, { answers = {}, stories = [] } = {}) {
   const p = { ...freshJobPrep(), ...jobPrep };
   const has = (s) => !!String(s || '').trim();
-  const coreDrafted = CORE.filter((id) => has(answers[id])).length;
+  const qids = chosenQuestions(p);
+  const drafted = qids.filter((id) => has(answers[id])).length;
   const myStories = p.stories.filter((id) => stories.some((st) => st.id === id));
   const askCount = p.ask.length + String(p.askOwn || '').split('\n').filter((l) => l.trim()).length;
   const logi = LOGISTICS.filter(([k]) => p.logistics[k]).length;
   const steps = [
     { id: 'research', name: 'Research the company', detail: has(p.research) ? 'Notes written' : 'What they do, recent news, their customers', done: has(p.research) },
     { id: 'why', name: 'Why this company, why this role', detail: `${[p.whyCompany, p.whyRole].filter(has).length} of 2 answered`, done: has(p.whyCompany) && has(p.whyRole) },
-    { id: 'core', name: 'The most likely questions', detail: `${coreDrafted} of ${CORE.length} answers drafted`, done: coreDrafted === CORE.length },
+    { id: 'core', name: 'Questions to prepare', detail: qids.length ? `${drafted} of ${qids.length} answers drafted` : 'None chosen yet', done: qids.length > 0 && drafted === qids.length },
     { id: 'stories', name: 'Stories ready to tell', detail: `${myStories.length} picked (2 or more)`, done: myStories.length >= 2 },
     { id: 'ask', name: 'Questions to ask them', detail: `${askCount} ready (2 or more)`, done: askCount >= 2 },
     { id: 'logistics', name: 'On the day', detail: `${logi} of ${LOGISTICS.length} done`, done: logi === LOGISTICS.length },

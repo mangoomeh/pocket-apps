@@ -5,7 +5,7 @@ import {
 } from '../src/jobs.js';
 import {
   CATEGORIES as Q_CATS, QUESTIONS, STAR, questionList, pickPractice, MOST_ASKED, progressOf, STORY_IDEAS, STORY_CATS,
-  storyQuestions, newStory, storyReady, storiesFor, CORE, LOGISTICS, freshJobPrep, prepSteps, interviewsToPrep,
+  storyQuestions, newStory, storyReady, storiesFor, CORE, chosenQuestions, LOGISTICS, freshJobPrep, prepSteps, interviewsToPrep,
 } from '../src/interview.js';
 import { $, esc, switchTab, toast } from '../shared/ui.js';
 
@@ -233,7 +233,7 @@ let showTip = false;
 const openQs = new Set(); // questions expanded in the list, kept open across redraws
 const openSecs = new Set(['most']); // question groups expanded
 const prep = () => state.prep;
-const qCat = (id) => Q_CATS.find((c) => c.id === id) || { name: 'My questions', icon: '✏️' };
+const qCat = (id) => Q_CATS.find((c) => c.id === id) || { name: 'My questions', icon: '✏️' }; // 'mine' and anything unknown
 const allQuestions = () => questionList(prep().custom);
 const has = (s) => !!String(s || '').trim();
 
@@ -245,7 +245,7 @@ function storyChips(qid) {
   return storiesFor(prep().stories, qid).map((st) => `<button type="button" class="jb-story-chip" data-story="${esc(st.id)}">📖 ${esc(st.title || 'Untitled story')}</button>`).join('');
 }
 
-function questionItem(x) {
+function questionItem(x, { inPrep = false } = {}) {
   const p = prep();
   const linkable = STORY_CATS.has(x.cat) || x.id === 'intro-4' || x.mine;
   const linked = storiesFor(p.stories, x.id);
@@ -263,18 +263,19 @@ function questionItem(x) {
       <label class="field"><span>Your answer</span><textarea rows="4" data-answer="${esc(x.id)}" placeholder="Key points, or which story you'd tell…">${esc(p.answers[x.id] || '')}</textarea></label>
       <div class="jb-q-actions">
         <label class="check-row"><input type="checkbox" data-practised="${esc(x.id)}" ${p.practised[x.id] ? 'checked' : ''}><span>Practised out loud</span></label>
-        ${x.mine ? `<button type="button" class="text-btn danger-text" data-del-q="${esc(x.id)}">Delete</button>` : ''}
+        ${x.mine && !inPrep ? `<button type="button" class="text-btn danger-text" data-del-q="${esc(x.id)}">Delete</button>` : ''}
       </div>
     </div>
   </details>`;
 }
 
-function section(id, title, list, note = '') {
+function section(id, title, list, note = '', extra = '') {
   const pr = progressOf(list, prep().answers, prep().practised);
   return `<details class="card jb-sec" data-sec="${id}" ${openSecs.has(id) ? 'open' : ''}>
     <summary><span class="jb-sec-title">${title}</span><span class="jb-sec-prog">${progressText(pr)}</span></summary>
     ${note ? `<p class="hint">${note}</p>` : ''}
     <div class="jb-qlist">${list.map(questionItem).join('')}</div>
+    ${extra}
   </details>`;
 }
 
@@ -340,11 +341,12 @@ function renderPrep() {
     const mine = pool.filter((x) => x.mine);
     $('q-sections').innerHTML = [
       section('most', '🔥 Most asked', MOST_ASKED.map((id) => byId[id]).filter(Boolean), 'Asked in almost every interview. Start here.'),
-      ...(mine.length ? [section('mine', '✏️ My questions', mine)] : []),
+      section('mine', '✏️ My questions', mine,
+        mine.length ? '' : 'Questions you were asked, or expect to be: from a job ad, or about your own background.',
+        `<div class="jb-add-q"><input id="q-new" autocomplete="off" placeholder="Type a question…" aria-label="Your question"><button type="button" class="primary small" id="q-add">Add</button></div>`),
       ...Q_CATS.map((c) => section(c.id, `${c.icon} ${esc(c.name)}`, QUESTIONS.filter((x) => x.cat === c.id))),
     ].join('');
   }
-  if (!$('q-new-cat').options.length) $('q-new-cat').innerHTML = Q_CATS.map((c) => `<option value="${c.id}">${c.icon} ${esc(c.name)}</option>`).join('');
 }
 
 function setPractised(id, on) {
@@ -411,6 +413,7 @@ function openPrep(id) {
   if (!j) return;
   j.prep = { ...freshJobPrep(), ...j.prep };
   prepJobId = id;
+  pickingQs = false;
   openSteps.clear();
   const first = prepSteps(j.prep, prep()).steps.find((s) => !s.done);
   if (first) openSteps.add(first.id);
@@ -443,8 +446,7 @@ function renderPrepSheet() {
     why: `${area('whyCompany', `Why ${esc(j.company)}?`, 'Something specific about them (product, mission, a recent move) and why it matters to you.')}
       ${area('whyRole', 'Why this role?', 'Two or three things in the job ad you\'ve done before and enjoy.')}
       <p class="hint">These are kept for ${esc(j.company)} only.</p>`,
-    core: `<p class="hint">Your answers here are shared with the question bank, so they're ready for every interview.</p>
-      <div class="jb-qlist">${CORE.map((id) => qById[id]).filter(Boolean).map(questionItem).join('')}</div>`,
+    core: coreStep(j, qById),
     stories: p.stories.length ? `<p class="hint">Pick the stories you'll have ready. Choose ones that show what the job ad asks for.</p>
       ${p.stories.map((st) => `<label class="check-row"><input type="checkbox" data-jp-story="${esc(st.id)}" ${jp.stories.includes(st.id) ? 'checked' : ''}><span>${esc(st.title || 'Untitled story')}${storyReady(st) ? '' : ' <small>(unfinished)</small>'}</span></label>`).join('')}
       <div class="actions"><button type="button" class="secondary small" data-new-story>＋ New story</button></div>`
@@ -463,6 +465,29 @@ function renderPrepSheet() {
       <div class="jb-step-body">${body[s.id]}</div>
     </details>`).join('')}
     <p class="hint jb-foot">Good luck! Afterwards, note how it went in the application's notes.</p>`;
+}
+
+// The questions chosen for this interview, and a picker to change them.
+let pickingQs = false;
+function coreStep(j, qById) {
+  const chosen = chosenQuestions(j.prep).filter((id) => qById[id]);
+  const picker = () => {
+    const groups = [['mine', '✏️ My questions'], ...Q_CATS.map((c) => [c.id, `${c.icon} ${c.name}`])];
+    return `<div class="jb-picker">
+      <div class="jb-picker-head"><b>Choose the questions to prepare</b>
+        <span><button type="button" class="text-btn" data-pick-reset>Most likely 6</button> · <button type="button" class="text-btn" data-pick-none>None</button></span></div>
+      ${groups.map(([cat, name]) => {
+        const qs = questionList(prep().custom, { cat });
+        if (!qs.length) return '';
+        return `<p class="jb-picker-group">${esc(name)}</p>${qs.map((x) => `<label class="check-row"><input type="checkbox" data-jp-q="${esc(x.id)}" ${chosen.includes(x.id) ? 'checked' : ''}><span>${esc(x.q)}</span></label>`).join('')}`;
+      }).join('')}
+      <div class="actions"><button type="button" class="primary small" data-pick-done>Done</button></div>
+    </div>`;
+  };
+  return `<p class="hint">${Array.isArray(j.prep.qids) ? `${chosen.length} question${chosen.length === 1 ? '' : 's'} chosen for this interview.` : 'Starting with the six asked in almost every interview. Choose your own to fit this job.'}
+      Your answers are shared with the question bank, so they're ready for every interview.</p>
+    ${pickingQs ? picker() : `<div class="actions jb-pick-open"><button type="button" class="secondary small" data-pick-open>✏️ Choose questions (${chosen.length})</button></div>`}
+    <div class="jb-qlist">${chosen.map((id) => questionItem(qById[id], { inPrep: true })).join('')}</div>`;
 }
 
 // Updates the header and step ticks while typing, without redrawing (so the box keeps focus).
@@ -745,6 +770,7 @@ for (const el of [$('q-sections'), $('practice'), $('prep-body')]) {
     const toggle = (list, id) => (t.checked ? [...new Set([...list, id])] : list.filter((x) => x !== id));
     if (j && t.dataset.jpStory) j.prep.stories = toggle(j.prep.stories, t.dataset.jpStory);
     else if (j && t.dataset.jpAsk) j.prep.ask = toggle(j.prep.ask, t.dataset.jpAsk);
+    else if (j && t.dataset.jpQ) j.prep.qids = toggle(chosenQuestions(j.prep), t.dataset.jpQ);
     else if (j && t.dataset.jpLogi) { if (t.checked) j.prep.logistics[t.dataset.jpLogi] = true; else delete j.prep.logistics[t.dataset.jpLogi]; }
     else return;
     save();
@@ -755,6 +781,16 @@ for (const el of [$('q-sections'), $('practice'), $('prep-body')]) {
     const story = ev.target.closest('.jb-story-chip');
     if (story) { ev.preventDefault(); return openStory(story.dataset.story); }
     if (ev.target.closest('[data-new-story]')) return openStory();
+    const pj = prepJob();
+    if (pj && ev.target.closest('[data-pick-open], [data-pick-done], [data-pick-reset], [data-pick-none]')) {
+      if (ev.target.closest('[data-pick-open]')) pickingQs = true;
+      if (ev.target.closest('[data-pick-done]')) pickingQs = false;
+      if (ev.target.closest('[data-pick-reset]')) pj.prep.qids = [...CORE];
+      if (ev.target.closest('[data-pick-none]')) pj.prep.qids = [];
+      save();
+      renderPrep();
+      return renderPrepSheet();
+    }
     const cal = ev.target.closest('[data-cal]');
     if (cal) return downloadIcs(state.jobs.find((x) => x.id === cal.dataset.cal));
     const del = ev.target.closest('[data-del-q]');
@@ -764,23 +800,25 @@ for (const el of [$('q-sections'), $('practice'), $('prep-body')]) {
     delete prep().answers[id];
     delete prep().practised[id];
     for (const st of prep().stories) st.qids = (st.qids || []).filter((q) => q !== id);
+    for (const j of state.jobs) if (Array.isArray(j.prep?.qids)) j.prep.qids = j.prep.qids.filter((q) => q !== id);
     save();
     renderPrep();
   });
 }
 
-$('q-add').addEventListener('click', () => {
+// The add box lives inside the My questions group, which is redrawn, so it's handled here.
+function addQuestion() {
   const q = $('q-new').value.trim();
   if (!q) return toast('Type the question first.');
-  const id = `my-${newId()}`;
-  prep().custom.unshift({ id, cat: $('q-new-cat').value, q });
-  openQs.add(id);
+  prep().custom.push({ id: `my-${newId()}`, cat: 'mine', q });
   openSecs.add('mine');
-  $('q-new').value = '';
   save();
   renderPrep();
+  $('q-new').focus();
   toast('Added to My questions.');
-});
+}
+$('q-sections').addEventListener('click', (ev) => { if (ev.target.closest('#q-add')) addQuestion(); });
+$('q-sections').addEventListener('keydown', (ev) => { if (ev.target.id === 'q-new' && ev.key === 'Enter') { ev.preventDefault(); addQuestion(); } });
 
 $('s-ideas').addEventListener('click', (ev) => {
   const b = ev.target.closest('[data-idea]');

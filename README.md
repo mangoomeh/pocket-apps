@@ -132,12 +132,13 @@ Keeps track of every job you apply for, what's next for each, and how the search
 - **Interview prep:** a bank of 50 common questions in 8 groups (about you, why this job, past experience,
   strengths, what would you do, teamwork, pay and practical, questions to ask them), each with a tip on what the
   interviewer is looking for. "Most asked" (10) comes first; the other groups are folded, each showing how many
-  answers are drafted and practised. Draft answers, mark questions practised, add your own, and practise with a
-  question card (`src/interview.js`).
+  answers are drafted and practised. Draft answers, mark questions practised, add your own (they get their own "My questions" group),
+  and practise with a question card (`src/interview.js`).
 - **Story bank:** write your best work stories once with Situation, Task, Action and Result, and link each to the
   "tell me about a time…" questions it answers. Linked stories show under those questions and on the practice card.
 - **Prep for an interview:** each upcoming interview gets a checklist (from Prep, Upcoming or the job's form):
-  research notes, why this company and role (kept for that job), the six most likely questions, the stories to have
+  research notes, why this company and role (kept for that job), the questions to prepare (the six most
+  likely to start with; choose your own from any group), the stories to have
   ready, questions to ask them, and on-the-day logistics, with a readiness score like "4/6 ready".
 - **Follow-ups:** an application with no reply after 2 weeks and nothing planned is flagged. "I followed up" checks
   back in a week; "No reply" closes it.
