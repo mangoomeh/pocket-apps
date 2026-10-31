@@ -1,20 +1,19 @@
 // Backup file format for everything the apps save on a phone: the browser storage keys
-// below, and the photo, floor plan and chat databases. Blobs (photos) are stored as base64
+// below, and the photo and floor plan databases. Blobs (photos) are stored as base64
 // so the backup is one plain JSON file.
 
 export const STORAGE_KEYS = [
   'petty-cash-v1', 'petty-cash-theme', 'sushiro-v1', 'split-v1', 'split-shared-me', 'trip-v1', 'calc84-v1',
-  'wallets-v1', 'security-v1', 'bazi-v1', 'ziwei-v1', 'fengshui-v1', 'learnai-v1', 'godigital-v1', 'mergetactics-v1', 'tarot-v1', 'local-chat-v1',
+  'wallets-v1', 'bazi-v1', 'ziwei-v1', 'fengshui-v1', 'learnai-v1', 'godigital-v1', 'tarot-v1',
 ];
 
 // Saved by apps but not worth backing up: they're refetched when missing.
-export const CACHE_KEYS = ['split-rates', 'security-cache'];
+export const CACHE_KEYS = ['split-rates'];
 
 // Each database exactly as its app opens it, so restoring never creates a mismatched one.
 export const DATABASES = [
   { name: 'sushiro-photos', store: 'receipts' },
   { name: 'fengshui-plan', store: 'plans' },
-  { name: 'local-chat', store: 'chats', keyPath: 'id' },
 ];
 
 const FORMAT = 'pocket-apps-backup';
@@ -72,10 +71,8 @@ export function readBackup(data) {
 export function describeBackup(data) {
   const apps = new Set(Object.keys(data.storage || {}).filter((k) => STORAGE_KEYS.includes(k)).map((k) => k.replace(/-(v1|theme)$/, '')));
   const photos = (data.databases?.['sushiro-photos'] || []).length;
-  const chats = (data.databases?.['local-chat'] || []).length;
   const parts = [`${apps.size} app${apps.size === 1 ? '' : 's'}`];
   if (photos) parts.push(`${photos} receipt photo${photos === 1 ? '' : 's'}`);
-  if (chats) parts.push(`${chats} chat${chats === 1 ? '' : 's'}`);
   if ((data.databases?.['fengshui-plan'] || []).length) parts.push('a floor plan');
   const when = data.savedAt ? new Date(data.savedAt).toLocaleString('en-SG', { dateStyle: 'medium', timeStyle: 'short' }) : 'an unknown date';
   return `Saved ${when}: ${parts.join(', ')}.`;

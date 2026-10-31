@@ -15,7 +15,7 @@ test('blobs inside values survive a JSON round trip', async () => {
 test('a backup restores only Pocket Apps data', async () => {
   const backup = await makeBackup(
     { 'split-v1': '{"groups":[]}', 'trip-v1': '{}' },
-    { 'sushiro-photos': [{ key: 'v1', value: new Blob(['x']) }], 'local-chat': [{ key: 'c1', value: { id: 'c1' } }] },
+    { 'sushiro-photos': [{ key: 'v1', value: new Blob(['x']) }], 'fengshui-plan': [{ key: 'p1', value: { rooms: [] } }] },
     new Date('2026-10-21T08:00:00Z'),
   );
   const file = JSON.parse(JSON.stringify(backup));
@@ -23,9 +23,9 @@ test('a backup restores only Pocket Apps data', async () => {
   file.databases.other = [{ key: 1, value: 1 }];
   const { storage, databases } = readBackup(file);
   assert.deepEqual(Object.keys(storage), ['split-v1', 'trip-v1']);
-  assert.deepEqual(Object.keys(databases), ['sushiro-photos', 'local-chat']);
+  assert.deepEqual(Object.keys(databases), ['sushiro-photos', 'fengshui-plan']);
   assert.ok(databases['sushiro-photos'][0].value instanceof Blob);
-  assert.match(describeBackup(file), /2 apps, 1 receipt photo, 1 chat\.$/);
+  assert.match(describeBackup(file), /2 apps, 1 receipt photo, a floor plan\.$/);
 });
 
 test('other files are refused with a clear message', () => {
@@ -36,7 +36,7 @@ test('other files are refused with a clear message', () => {
 test('every app\'s storage key is backed up', async () => {
   const { readFileSync, readdirSync } = await import('node:fs');
   const used = new Set();
-  for (const dir of ['petty-cash', 'sushiro', 'split', 'trip', 'calc84', 'wallets', 'security', 'bazi', 'ziwei', 'fengshui', 'learnai', 'godigital', 'mergetactics', 'tarot', 'chat']) {
+  for (const dir of ['petty-cash', 'sushiro', 'split', 'trip', 'calc84', 'wallets', 'bazi', 'ziwei', 'fengshui', 'learnai', 'godigital', 'tarot']) {
     for (const f of readdirSync(new URL(`../${dir}/`, import.meta.url))) {
       if (!/\.(js|html)$/.test(f)) continue;
       const text = readFileSync(new URL(`../${dir}/${f}`, import.meta.url), 'utf8');

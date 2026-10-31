@@ -21,15 +21,12 @@ APPS = [
     ('trip', 'Trip Planner', 'Trip', '🧳', '#0369a1'),
     ('calc84', 'GX-84 Calculator', 'GX-84', '🧮', '#16181b'),
     ('wallets', 'Wallet Radar', 'Wallets', '🔎', '#3b2a8a'),
-    ('security', 'Security Watch', 'Security', '🛡️', '#9f1239'),
     ('bazi', 'BaZi Calculator', 'BaZi', '☯️', '#7a1f1f'),
     ('ziwei', 'Zi Wei Dou Shu', 'Zi Wei', '🔮', '#5b21b6'),
     ('fengshui', 'Feng Shui', 'Feng Shui', '🧭', '#14503c'),
     ('learnai', 'AI for Beginners', 'Learn AI', '🤖', '#1e40af'),
     ('godigital', 'Go Digital', 'Go Digital', '📱', '#0f766e'),
-    ('mergetactics', 'Merge Tactics Coach', 'Merge Tactics', '⚔️', '#b45309'),
     ('tarot', 'Tarot', 'Tarot', '🌙', '#312e81'),
-    ('chat', 'Local Chat', 'Local Chat', '🦙', '#111827'),
 ]
 
 

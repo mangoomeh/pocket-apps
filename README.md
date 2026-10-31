@@ -8,7 +8,7 @@ Live at https://mangoomeh.github.io/pocket-apps/
   network.
 - **Add to Home Screen:** each app has its own icon and opens straight into that app, full screen.
 - **Your data stays on your phone,** and the browser is asked to keep it. **Backup** on the home screen saves
-  everything (including receipt photos, chats and the floor plan) to one file you can keep in Files, iCloud Drive or
+  everything (including receipt photos and the floor plan) to one file you can keep in Files, iCloud Drive or
   Google Drive, and restores it on a new phone.
 
 ## Apps
@@ -54,10 +54,6 @@ Counts plates during a meal and works out the bill.
   results.
 - **Receipt photos:** a compressed copy of each photo is kept with its saved visit in the browser's IndexedDB on that
   device.
-- **Read with my AI (optional):** under Settings, point the app at Ollama on your PC (the same address as Local
-  Chat) and pick a vision model such as `qwen3-vl:8b`. "🤖 Read with my AI" sends the receipt photo to your own PC,
-  asks the model only to transcribe the text, and runs that text through the same parser and checks as the
-  built-in reader (`cleanTranscript` in `src/receipt.js` flattens any Markdown first).
 
 ### 💸 Split (`split/`)
 
@@ -121,41 +117,6 @@ A day-by-day itinerary and a packing list for each trip.
 - **Add to calendar:** saves the plan as an `.ics` file that Google or Apple Calendar can import: the trip as an
   all-day event, timed items as one-hour events and untimed ones as all-day events.
 - **Expenses in Split:** opens this trip's group in Split, or starts one named after the trip.
-
-### 🛡️ Security Watch (`security/`)
-
-The latest security vulnerabilities and news in one place, with a watch list for the things you use.
-
-- **Exploited:** vulnerabilities [CISA](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) has confirmed
-  attackers are using, added in the last 7, 30 or 90 days. Each shows the vendor and product, whether it's used in
-  ransomware, its [EPSS](https://www.first.org/epss/) score (the chance it's exploited in the next 30 days), what to do,
-  and links to the NVD and CVE.org.
-- **New → All CVEs:** critical or high vulnerabilities published in the last 24 hours or 7 days, from the
-  [NVD](https://nvd.nist.gov), highest score first, with EPSS scores. The score is the NVD's own if it has one,
-  otherwise the reporter's, newest CVSS version first. Every CVE of the week is read and sorted here, because the NVD's
-  severity filter only knows CVSS 3 and misses CVEs scored only with CVSS 4.0 (about one in six high or critical ones).
-- **New → Open-source packages:** high and critical advisories for npm, PyPI, Go, Maven, crates.io, RubyGems, NuGet and
-  Packagist from [OSV](https://osv.dev) (GitHub-reviewed and others), plus **malware found in popular packages**, such
-  as a hijacked release of a real package (the LiteLLM 1.107.0 kind), which never gets a CVE. Malware reports for
-  packages outside the most-downloaded lists (the top 5,000 on PyPI, `npm-high-impact` on npm) are left out, since
-  most are typosquats nobody installs. A bug report only counts as new when it's first published (not when it's
-  edited, or re-published as a copy of a GitHub advisory); a malware report also counts when it's updated, because
-  that's how a newly hijacked version shows up.
-- **News:** BleepingComputer, The Hacker News, SecurityWeek, Krebs on Security, Schneier on Security, the UK NCSC and
-  CISA advisories, plus security stories from Hacker News, newest first with duplicates removed. CVE numbers in a story
-  link to the NVD.
-- **Watch list:** vendors, products and packages you use (e.g. "Fortinet, Chrome, iOS, litellm"). Matches are marked
-  on every tab, can be filtered to, and are counted in the header, which flags malware and actively exploited ones as
-  urgent. Words that could be package names are also looked up on OSV as PyPI and npm packages, showing new
-  advisories from the last 30 days and any malware found in their releases.
-- **Package check:** paste `lodash@4.17.15`, `requests==2.19.0` or `go github.com/x/y 1.2.3` lines and see known
-  vulnerabilities from [OSV](https://osv.dev), with the versions that fix them.
-- **Where the data comes from:** news sites don't let web pages read their feeds, CISA's full list is 1.8 MB, a week
-  of NVD CVEs is several MB, and OSV's recent changes are read record by record, so the Pages workflow runs
-  `tools/build-feeds.js` on every deploy and every 3 hours (about 3 minutes, mostly waiting on the NVD's rate limit)
-  and publishes the result as `security/data.json` (about 160 KB compressed). EPSS, Hacker News and the watch-list
-  package lookups are asked directly by the page. Nothing needs a key. If `data.json` is missing, the page reads
-  CISA's list and the NVD itself.
 
 ### 🧮 GX-84 Calculator (`calc84/`)
 
@@ -376,23 +337,6 @@ switch.
 - Grab and FairPrice are still simplified drawings, until there are real screenshots for them. The app says it isn't
   made by or linked to Grab, FairPrice or DBS.
 
-### ⚔️ Merge Tactics Coach (`mergetactics/`)
-
-A guide to Merge Tactics, Clash Royale's 4-player auto-battler mode, kept to the latest season (now Season 11,
-October 2026).
-
-- **Learn:** ten short lessons (the goal, deploy and battle phases, Golden Elixir and the shop, merging, team size,
-  traits, Rulers and quests, Supers, equipment, modifiers and leagues), and a **merge practice** board: a
-  simplified deploy phase with a 3-card shop, 4 Elixir a round, a bench of 5 and a team that grows from 2 to 6,
-  with goals that walk you through buying, placing, merging and switching on a trait.
-- **Troops:** the current pool of 29 troops with cost, trait, role and what each does, filtered by trait.
-- **Planner:** pick a team and see which traits switch on, how many more troops reach the next tier, and where to
-  put each troop (tanks in front, ranged at the back); with four team ideas to start from. Saved on the device.
-- **Tips:** strategy, the Rulers, this month's modifiers by league, and what changed lately.
-- **Data** lives in `src/mergetactics.js` (with `UPDATED`), from Supercell's release notes plus the community
-  trackers seemeta.com and mergetacticsbuild.com. Update it when the monthly changes land. Fan-made; not made by
-  or linked to Supercell.
-
 ### 🌙 Tarot (`tarot/`)
 
 Tarot readings with the full 78-card Rider–Waite–Smith deck, in Pamela Colman Smith's original 1909 art (public
@@ -411,21 +355,6 @@ domain; scans from Wikimedia Commons, resized in `tarot/cards/`).
 - **Journal:** save a reading with your notes and look back later. Kept on the device; included in backups.
 - Meanings follow the Rider–Waite tradition, written short and plain, in `src/tarot.js`. For reflection and fun.
 
-### 🦙 Local Chat (`chat/`)
-
-A chat app for your own AI models running in [Ollama](https://ollama.com) on your PC. The page talks to Ollama
-directly; chats are kept in the browser (IndexedDB) and go nowhere else.
-
-- Streaming replies with a Stop button, regenerate, and edit-and-resend; Markdown with tables and code blocks
-  (with copy buttons), rendered by a small escaping renderer in `src/chat.js`.
-- Model picker from the models you've pulled, with size and family; photos for models that can see; a folded
-  "reasoning" section for thinking models (Ollama's `think` option, or `<think>` tags).
-- Personalities or your own system prompt, temperature and context length, chat history with search, rename,
-  delete and export.
-- Setup: Ollama must allow this site with `OLLAMA_ORIGINS=https://mangoomeh.github.io`. For phones, run
-  `tailscale serve --bg 11434` on the PC (and `OLLAMA_HOST=0.0.0.0:11434`) and use the Tailscale https address.
-  The in-app setup guide and connection test walk through it.
-
 The home screen also links to [Web Monopoly](https://mangoomeh.github.io/web-monopoly/),
 [Morning Pick](https://mangoomeh.github.io/morning-pick/) and
 [Deliberate](https://mangoomeh.github.io/deliberate/).
@@ -436,7 +365,6 @@ The home screen also links to [Web Monopoly](https://mangoomeh.github.io/web-mon
 npm start        # serves the apps at http://localhost:8000
 npm test         # runs the unit tests (Node 18+)
 npm run sw       # updates the offline file list in sw.js; run after adding or changing files
-npm run feeds    # makes security/data.json (news and CISA's list) for trying Security Watch locally
 npm run icons    # redraws the icons and manifests (Python 3 + Pillow + Noto Color Emoji); run after adding an app
 ```
 
@@ -452,10 +380,10 @@ Every push to `main` runs the tests and publishes to GitHub Pages (`.github/work
 - `manifest.webmanifest` in each folder, and `icons/`: what a phone uses when an app is added to the home screen
 - `shared/styles.css`: shared styles, including the Sushiro theme
 - `shared/ui.js`: helpers every app uses (`$`, `esc`, `toast`, `switchTab`); `shared/backup.js`: the Backup card
-- `petty-cash/`, `sushiro/`, `split/`, `trip/`, `security/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `chat/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
-- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `security.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `chat.js`, `compass.js`), with all money in integer cents
+- `petty-cash/`, `sushiro/`, `split/`, `trip/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `godigital/`, `tarot/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
+- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `compass.js`), with all money in integer cents
 - `tests/`: unit tests for `src/`, plus checks that the offline and install files are complete
-- `tools/`: `build-sw.js` (offline file list), `build-pwa.py` (icons and manifests) and `build-feeds.js` (Security Watch's data)
+- `tools/`: `build-sw.js` (offline file list) and `build-pwa.py` (icons and manifests)
 
 To add an app: create a folder with an `index.html` (copy the `<head>` of another app, which links its manifest,
 icon and `pwa.js`), add a tile to the root `index.html`, add the folder to `APPS` in `tools/build-sw.js` and

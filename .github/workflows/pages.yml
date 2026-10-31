@@ -3,9 +3,6 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-  # Refreshes Security Watch's news and CISA list every 3 hours.
-  schedule:
-    - cron: '23 */3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -32,12 +29,7 @@ jobs:
       - name: Collect site files
         run: |
           mkdir _site
-          cp -r index.html manifest.webmanifest sw.js icons shared src petty-cash sushiro calc84 wallets bazi fengshui learnai godigital mergetactics tarot chat split trip security ziwei _site/
-      - name: Collect security news and CISA's exploited list
-        run: node tools/build-feeds.js _site/security/data.json
-        env:
-          # Optional: a free key from nvd.nist.gov lets the NVD be read 10× faster.
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+          cp -r index.html manifest.webmanifest sw.js icons shared src petty-cash sushiro calc84 wallets bazi fengshui learnai godigital tarot split trip ziwei _site/
       - uses: actions/configure-pages@v5
         with:
           enablement: true

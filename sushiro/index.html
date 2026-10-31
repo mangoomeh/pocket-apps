@@ -66,11 +66,9 @@
           <div id="receipt-start">
             <div class="actions">
               <label class="secondary btn" for="receipt-file">📷 Snap receipt</label>
-              <label class="secondary btn" for="receipt-file-ai" id="ai-snap" hidden>🤖 Read with my AI</label>
               <button class="secondary" id="paste-toggle" type="button">📋 Paste text</button>
             </div>
             <input type="file" id="receipt-file" accept="image/*" hidden>
-            <input type="file" id="receipt-file-ai" accept="image/*" hidden>
             <div id="paste-box" hidden>
               <p class="hint">On iPhone, long-press the receipt text in Camera or Photos (Live Text), or use Google Lens on Android, then copy and paste it here.</p>
               <textarea id="paste-text" rows="5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Paste receipt text"></textarea>
@@ -140,17 +138,6 @@
         <div class="rates">
           <label class="field"><span>Service charge (%)</span><input id="rate-service" inputmode="decimal"></label>
           <label class="field"><span>GST (%)</span><input id="rate-gst" inputmode="decimal"></label>
-        </div>
-      </div>
-      <div class="card">
-        <h2>Read receipts with my AI</h2>
-        <p class="hint">Use a vision model running in Ollama on your PC (such as <code>qwen3-vl:8b</code>) to read receipt photos. It's usually more accurate than the built-in reader, and the photo goes only to your own PC. Uses the same setup as <a href="../chat/">Local Chat</a>.</p>
-        <label class="check"><input type="checkbox" id="ai-enabled"> <span>Show “🤖 Read with my AI” on the receipt check</span></label>
-        <div id="ai-fields">
-          <label class="field"><span>Ollama address</span><input id="ai-server" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://your-pc.tail1234.ts.net"></label>
-          <label class="field"><span>Model</span><select id="ai-model"></select></label>
-          <div class="actions"><button class="secondary" id="ai-test" type="button">Find models / test</button></div>
-          <p class="hint" id="ai-status"></p>
         </div>
       </div>
     </section>

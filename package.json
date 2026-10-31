@@ -1,14 +1,13 @@
 {
   "name": "pocket-apps",
   "version": "1.0.0",
-  "description": "Small mobile-friendly apps: petty cash, Sushiro tracker, group expense splitter, trip planner, security watch, GX-84 calculator, Wallet Radar, BaZi calculator, Zi Wei Dou Shu, Feng Shui, AI for Beginners, Go Digital, Merge Tactics Coach, Tarot and Local Chat.",
+  "description": "Small mobile-friendly apps: petty cash, Sushiro tracker, group expense splitter, trip planner, GX-84 calculator, Wallet Radar, BaZi calculator, Zi Wei Dou Shu, Feng Shui, AI for Beginners, Go Digital and Tarot.",
   "type": "module",
   "private": true,
   "scripts": {
     "start": "python3 -m http.server 8000",
     "test": "node --test tests/*.test.js",
     "sw": "node tools/build-sw.js",
-    "feeds": "node tools/build-feeds.js",
     "icons": "python3 tools/build-pwa.py"
   }
 }

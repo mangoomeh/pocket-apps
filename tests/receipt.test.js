@@ -137,21 +137,3 @@ test('analyseReceipt says whether every item was read', () => {
   assert.equal(partial.complete, false);
   assert.equal(partial.subtotalCents - partial.itemsCents, 990);
 });
-
-test('an AI transcript in Markdown reads like OCR text', async () => {
-  const { cleanTranscript, analyseReceipt } = await import('../src/receipt.js');
-  const markdown = [
-    '**SUSHIRO**', 'Bedok Mall', '',
-    '| Price | Item | Qty | Amount |', '|---|---|---|---|',
-    '| $2.3 | Sushi | 20 | $46.00 |', '| $2.9 | Sushi | 6 | $17.40 |', '| $3.9 | Sushi | 2 | $7.80 |', '| $4.9 | Sushi | 3 | $14.70 |',
-    '| $3.5 | Chawanmushi | 2 | $7.00 |', '| $2.8 | Soup | 3 | $8.40 |', '| $3.5 | Dish | 2 | $7.00 |', '| $4.3 | Dish | 1 | $4.30 |',
-    '| $5.0 | Dish | 1 | $5.00 |', '| $9.9 | Dish | 1 | $9.90 |',
-    '- SUB TOTAL $127.50', '- Service Charge (10.00%) $12.75', '- GST Exclusive (9.00%) $12.62', '- **TOTAL(10Qt) $152.87**', '- MASTERCARD $152.87',
-  ].join('\n');
-  const text = cleanTranscript(markdown);
-  assert.match(text, /^\$2\.3 Sushi 20 \$46\.00$/m);
-  const r = analyseReceipt(text, DEFAULT_PLATES, DEFAULT_RATES);
-  assert.deepEqual(r.counts, { red: 20, silver: 6, gold: 2, black: 3 });
-  assert.equal(r.totalCents, 15287);
-  assert.equal(r.complete, true);
-});

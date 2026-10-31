@@ -188,25 +188,3 @@ export function compareWithReceipt(trackedTotalCents, receiptTotalCents, plates,
   }
   return { status: diffCents > 0 ? 'receipt-higher' : 'receipt-lower', diffCents, suggestions };
 }
-
-// ---- Receipts transcribed by an AI model --------------------------------------------------
-// A vision model (e.g. Qwen3-VL in Ollama) is asked only to copy the text, which it does well; the
-// text then goes through the same parser and checks as OCR text. Its reply can come as Markdown
-// (tables, bold, bullets), which is flattened back to plain receipt lines first.
-
-export const AI_TRANSCRIBE_PROMPT = 'Extract all the text from this receipt exactly as printed, line by line, top to bottom. Keep each item line on one line. Don\'t add anything else.';
-
-export function cleanTranscript(text) {
-  return String(text || '')
-    .replace(/^```.*$/gm, '')
-    .split(/\r?\n/)
-    .filter((l) => !/^\s*\|?\s*:?-{2,}/.test(l)) // Markdown table rules
-    .map((l) => l
-      .replace(/\*\*|__|`/g, '')
-      .replace(/^\s*(?:[-*+]|\d+[.)])\s+(?=\S)/, '') // list bullets (not "$2.3 …")
-      .replace(/\|/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim())
-    .filter(Boolean)
-    .join('\n');
-}

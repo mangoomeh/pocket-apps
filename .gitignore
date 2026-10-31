@@ -1,5 +1,4 @@
 node_modules/
 .DS_Store
-security/data.json
 # Screenshots from checking changes belong outside the repo
 /*.png

@@ -4,7 +4,6 @@ import {
 } from '../src/sushiro.js';
 import { analyseReceipt, compareWithReceipt } from '../src/receipt.js';
 import { readText } from './ocr.js';
-import { readReceiptWithAi, listModels } from './ai.js';
 import {
   getPhoto, putPhoto, deletePhoto, movePhoto, loadImage, compressForStorage, prepareForOcr,
 } from './photos.js';
@@ -18,22 +17,16 @@ function freshMeal(outlet = '') {
   return { counts: {}, specials: [], outlet };
 }
 
-// The Ollama address already set up in the Local Chat app on this device, if any.
-function localChatServer() {
-  try { return JSON.parse(localStorage.getItem('local-chat-v1'))?.server || ''; } catch { return ''; }
-}
-
 function load() {
   const defaults = {
     plates: DEFAULT_PLATES.map((p) => ({ ...p })),
     rates: { ...DEFAULT_RATES },
     meal: freshMeal(),
     visits: [],
-    ai: { enabled: false, server: localChatServer(), model: 'qwen3-vl:8b' },
   };
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (saved && Array.isArray(saved.plates)) return { ...defaults, ...saved, ai: { ...defaults.ai, ...saved.ai } };
+    if (saved && Array.isArray(saved.plates)) return { ...defaults, ...saved };
   } catch { /* storage unavailable or corrupt: start fresh */ }
   return defaults;
 }
@@ -130,7 +123,6 @@ function receiptMessage(trackedCents, receiptCents) {
 function renderReceipt() {
   const receipt = state.meal.receipt;
   $('receipt-start').hidden = receiptBusy || !!receipt;
-  $('ai-snap').hidden = !(state.ai.enabled && state.ai.server && state.ai.model);
   $('receipt-progress').hidden = !receiptBusy;
   $('receipt-result').hidden = receiptBusy || !receipt;
   if (!receipt || receiptBusy) return;
@@ -223,7 +215,7 @@ function setProgress(label, fraction) {
   else $('receipt-progress-bar').value = fraction;
 }
 
-async function scanReceipt(file, useAi = false) {
+async function scanReceipt(file) {
   if (!file) return;
   receiptBusy = true;
   setProgress('Preparing photo…', 0);
@@ -238,17 +230,12 @@ async function scanReceipt(file, useAi = false) {
     } catch {
       toast('Couldn’t keep the photo on this device, but will still read it.');
     }
-    state.meal.receipt = { totalCents: null, hasPhoto, source: useAi ? 'ai' : 'photo' };
+    state.meal.receipt = { totalCents: null, hasPhoto, source: 'photo' };
     save();
     receiptAbort = new AbortController();
     try {
-      if (useAi) {
-        setProgress(`Your AI (${state.ai.model}) is reading the receipt… This can take 10–60 seconds.`, null);
-        Object.assign(state.meal.receipt, readReceipt(await readReceiptWithAi(bitmap, state.ai, receiptAbort.signal)));
-      } else {
-        const text = await readText(prepareForOcr(bitmap), setProgress, receiptAbort.signal);
-        Object.assign(state.meal.receipt, readReceipt(text));
-      }
+      const text = await readText(prepareForOcr(bitmap), setProgress, receiptAbort.signal);
+      Object.assign(state.meal.receipt, readReceipt(text));
     } catch (err) {
       toast(`${err.message || 'Couldn’t read the receipt.'} You can type the total in instead.`);
     }
@@ -259,7 +246,6 @@ async function scanReceipt(file, useAi = false) {
     receiptBusy = false;
     receiptAbort = null;
     $('receipt-file').value = '';
-    $('receipt-file-ai').value = '';
     renderReceipt();
   }
 }
@@ -363,44 +349,6 @@ function renderVisits() {
   }));
 }
 
-let aiModels = null; // from the last successful test
-
-function renderAiSettings(models = aiModels) {
-  aiModels = models;
-  $('ai-enabled').checked = state.ai.enabled;
-  $('ai-fields').hidden = !state.ai.enabled;
-  if (document.activeElement !== $('ai-server')) $('ai-server').value = state.ai.server;
-  const list = models ? [...models] : [{ name: state.ai.model, vision: null }];
-  if (!list.some((m) => m.name === state.ai.model)) list.unshift({ name: state.ai.model, vision: null });
-  $('ai-model').innerHTML = '';
-  for (const m of list) {
-    const o = document.createElement('option');
-    o.value = m.name;
-    o.textContent = m.vision === true ? `${m.name} · can read photos` : m.vision === false ? `${m.name} · text only` : m.name;
-    $('ai-model').append(o);
-  }
-  $('ai-model').value = state.ai.model;
-}
-
-async function testAi() {
-  state.ai.server = $('ai-server').value.trim();
-  save();
-  $('ai-status').textContent = 'Connecting…';
-  try {
-    const models = await listModels(state.ai.server);
-    const vision = models.filter((m) => m.vision);
-    if (!models.some((m) => m.name === state.ai.model && m.vision) && vision.length) state.ai.model = vision[0].name;
-    save();
-    renderAiSettings(models);
-    $('ai-status').textContent = vision.length
-      ? `Connected. ${vision.length} model${vision.length === 1 ? '' : 's'} can read photos.`
-      : 'Connected, but none of your models can read photos. On your PC run: ollama pull qwen3-vl:8b';
-  } catch (err) {
-    $('ai-status').textContent = err.message;
-  }
-  renderReceipt();
-}
-
 function renderSettings() {
   $('tier-list').replaceChildren(...state.plates.map((p) => {
     const row = document.createElement('div');
@@ -436,7 +384,6 @@ function render() {
   renderMeal();
   renderVisits();
   renderSettings();
-  renderAiSettings();
 }
 
 // ---- Actions ----------------------------------------------------------------
@@ -570,11 +517,6 @@ $('split-bill').addEventListener('click', () => {
   location.href = `../split/#add=${encodeURIComponent(JSON.stringify({ desc, cents: currentBill().bill.totalCents }))}`;
 });
 $('receipt-file').addEventListener('change', (e) => scanReceipt(e.target.files[0]));
-$('receipt-file-ai').addEventListener('change', (e) => scanReceipt(e.target.files[0], true));
-$('ai-enabled').addEventListener('input', () => { state.ai.enabled = $('ai-enabled').checked; save(); renderAiSettings(); renderReceipt(); });
-$('ai-server').addEventListener('change', () => { state.ai.server = $('ai-server').value.trim(); save(); renderReceipt(); });
-$('ai-model').addEventListener('input', () => { state.ai.model = $('ai-model').value; save(); });
-$('ai-test').addEventListener('click', testAi);
 $('paste-toggle').addEventListener('click', () => {
   $('paste-box').hidden = !$('paste-box').hidden;
   if (!$('paste-box').hidden) $('paste-text').focus();
