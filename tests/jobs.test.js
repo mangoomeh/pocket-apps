@@ -144,3 +144,36 @@ test('the question bank is complete, searchable and picks fresh questions to pra
   assert.notEqual(pickPractice(list, practised, list[0].id).id, list[0].id, 'never the same twice');
   assert.equal(pickPractice([], {}), null);
 });
+
+test('prep: progress, stories and the checklist for one interview', async () => {
+  const { QUESTIONS, MOST_ASKED, CORE, progressOf, storyQuestions, newStory, storyReady, storiesFor, prepSteps, interviewsToPrep, LOGISTICS } = await import('../src/interview.js');
+  const ids = new Set(QUESTIONS.map((q) => q.id));
+  for (const id of [...MOST_ASKED, ...CORE]) assert.ok(ids.has(id), id);
+  assert.equal(MOST_ASKED.length, 10);
+  const list = QUESTIONS.filter((q) => MOST_ASKED.includes(q.id));
+  assert.deepEqual(progressOf(list, { 'intro-1': 'x', 'mot-1': '  ' }, { 'beh-1': true }), { total: 10, drafted: 1, practised: 1 });
+  const sq = storyQuestions([{ id: 'my1', cat: 'intro', q: 'Why the switch?' }]);
+  assert.ok(sq.some((q) => q.id === 'beh-1') && sq.some((q) => q.id === 'my1') && !sq.some((q) => q.id === 'prac-1'));
+  const st = { ...newStory('s1'), title: 'Rescued launch', a: 'Re-planned', r: 'Shipped on time', qids: ['beh-1', 'beh-3'] };
+  assert.ok(storyReady(st));
+  assert.ok(!storyReady({ ...st, r: ' ' }));
+  assert.deepEqual(storiesFor([st], 'beh-3').map((x) => x.id), ['s1']);
+  const empty = prepSteps({}, {});
+  assert.equal(empty.done, 0);
+  assert.equal(empty.total, 6);
+  const full = prepSteps(
+    { research: 'Fintech, 3k staff', whyCompany: 'Mission', whyRole: 'Craft', stories: ['s1', 's2', 'gone'], ask: ['ask-1'], askOwn: 'How big is the team?\n', logistics: Object.fromEntries(LOGISTICS.map(([k]) => [k, true])) },
+    { answers: Object.fromEntries(CORE.map((id) => [id, 'drafted'])), stories: [st, { ...st, id: 's2' }] },
+  );
+  assert.equal(full.done, 6);
+  assert.equal(prepSteps({ stories: ['s1', 'gone'] }, { stories: [st] }).steps.find((x) => x.id === 'stories').done, false, 'deleted stories do not count');
+  const T = '2026-10-31';
+  const jobs = [
+    { company: 'A', stage: 'interview', nextDate: '' },
+    { company: 'B', stage: 'applied', nextStep: 'Phone screen', nextDate: '2026-11-02' },
+    { company: 'C', stage: 'applied', nextStep: 'Send portfolio', nextDate: '2026-11-01' },
+    { company: 'D', stage: 'interview', nextStep: 'Final round', nextDate: '2026-11-05' },
+    { company: 'E', stage: 'rejected', nextDate: '2026-11-01' },
+  ];
+  assert.deepEqual(interviewsToPrep(jobs, T).map((j) => j.company), ['B', 'D', 'A']);
+});

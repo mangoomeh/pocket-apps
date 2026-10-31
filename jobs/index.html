@@ -45,20 +45,22 @@
     </section>
 
     <section data-panel="prep" hidden>
+      <div id="prep-interviews"></div>
       <div class="card jb-practice" id="practice"></div>
-      <details class="card jb-star">
-        <summary><b>The STAR method</b> <span class="muted">for “tell me about a time…”</span></summary>
-        <ol class="jb-star-list" id="star"></ol>
-        <p class="hint">Aim for about two minutes. Prepare five or six stories (a challenge, a mistake, leading, a conflict, a win) and you can bend them to fit most questions.</p>
-      </details>
-      <div class="card jb-tools">
+      <div class="card">
+        <div class="row-head"><h2>Your stories</h2><button class="text-btn" id="story-add">＋ New story</button></div>
+        <p class="hint">Write your best work stories once, then use them for any “tell me about a time…” question.</p>
+        <ul class="jb-stories" id="stories"></ul>
+        <details class="jb-star">
+          <summary>How the STAR method works</summary>
+          <ol class="jb-star-list" id="star"></ol>
+        </details>
+      </div>
+      <div class="jb-qhead">
+        <h2>Questions</h2>
         <input class="jb-search" id="q-search" type="search" placeholder="Search questions…" autocomplete="off" aria-label="Search questions">
-        <div class="jb-filters" id="q-filters" role="group" aria-label="Category"></div>
       </div>
-      <div class="card jb-list-card">
-        <div class="jb-qlist" id="q-list"></div>
-        <p class="hint" id="q-empty" hidden></p>
-      </div>
+      <div id="q-sections"></div>
       <div class="card">
         <h2>Add your own question</h2>
         <p class="hint">Something you were asked, or expect to be: a question from a job ad, or about your own background.</p>
@@ -116,6 +118,7 @@
           <label for="f-link"><span>Job ad link</span></label>
           <div class="jb-link-row"><input id="f-link" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="careers.example.com/…"><a class="secondary btn small" id="open-link" target="_blank" rel="noopener noreferrer" hidden>Open</a></div>
         </div>
+        <button type="button" class="secondary jb-prep-btn" id="open-prep" hidden>🎤 Prep for this interview</button>
         <label class="field"><span>Contact</span><input id="f-contact" autocomplete="off" placeholder="Recruiter's name, email or phone"></label>
         <label class="field"><span>Notes</span><textarea id="f-notes" rows="4" placeholder="Interview questions, who you spoke to, how it felt…"></textarea></label>
         <p class="status bad" id="form-error" hidden></p>
@@ -123,6 +126,35 @@
         <div class="actions" id="delete-row" hidden><button type="button" class="secondary danger" id="delete">Delete application</button></div>
       </div>
     </form>
+  </dialog>
+
+  <dialog class="jb-sheet" id="story-sheet" aria-labelledby="story-title">
+    <form method="dialog" id="story-form" novalidate>
+      <div class="jb-sheet-head">
+        <button type="button" class="text-btn" id="story-cancel">Cancel</button>
+        <h2 id="story-title">New story</h2>
+        <button type="submit" class="text-btn strong">Save</button>
+      </div>
+      <div class="jb-sheet-body">
+        <label class="field"><span>Name it</span><input id="s-title" autocomplete="off" placeholder="e.g. Rescuing the app launch"></label>
+        <div class="jb-ideas" id="s-ideas"></div>
+        <div class="jb-star-fields" id="s-fields"></div>
+        <div class="field">
+          <span>Good for these questions</span>
+          <div class="jb-story-qs" id="s-qs"></div>
+        </div>
+        <div class="actions" id="story-delete-row" hidden><button type="button" class="secondary danger" id="story-delete">Delete story</button></div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="jb-sheet" id="prep-sheet" aria-labelledby="prep-title">
+    <div class="jb-sheet-head">
+      <span></span>
+      <h2 id="prep-title">Interview prep</h2>
+      <button type="button" class="text-btn strong" id="prep-close">Done</button>
+    </div>
+    <div class="jb-sheet-body" id="prep-body"></div>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
