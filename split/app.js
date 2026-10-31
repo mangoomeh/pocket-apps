@@ -214,9 +214,12 @@ function renderGroups() {
   $('subline').textContent = 'Share costs, see who owes whom, settle up';
   $('groups-empty').hidden = state.groups.length > 0;
   $('group-list').innerHTML = state.groups.map((g) => `
-    <li class="tap" data-group="${esc(g.id)}">
-      <div class="top"><strong>${esc(g.name)}</strong><span class="amt">${money(totalSpent(g), g)}</span></div>
-      <div class="meta">${liveMembers(g).length} people${myLine(g) ? ` · ${esc(myLine(g))}` : ''}</div>
+    <li class="tap group-row" data-group="${esc(g.id)}">
+      <div class="grow">
+        <div class="top"><strong>${esc(g.name)}</strong><span class="amt">${money(totalSpent(g), g)}</span></div>
+        <div class="meta">${liveMembers(g).length} people${myLine(g) ? ` · ${esc(myLine(g))}` : ''}</div>
+      </div>
+      <button class="icon-btn" data-delete-group="${esc(g.id)}" aria-label="Delete ${esc(g.name)}" title="Delete group">🗑</button>
     </li>`).join('');
 }
 
@@ -668,13 +671,14 @@ function addMember() {
   render();
 }
 
-function deleteGroup() {
-  const g = group();
-  if (!confirm(`Remove "${g.name}" from this phone? Friends keep their copies, and you can open a shared link to get it back.`)) return;
+function deleteGroup(id = state.current) {
+  const g = state.groups.find((x) => x.id === id);
+  if (!g || !confirm(`Delete "${g.name}" and its expenses from this phone? This can't be undone. Friends' phones keep their own copies.`)) return;
   state.groups = state.groups.filter((x) => x.id !== g.id);
-  state.current = null;
+  if (state.current === g.id) state.current = null;
   save();
   render();
+  toast(`Deleted "${g.name}".`);
 }
 
 let pendingAdd = null; // { desc, cents } from Sushiro's "Split this bill"
@@ -751,6 +755,8 @@ $('back').addEventListener('click', (ev) => {
   render();
 });
 $('group-list').addEventListener('click', (ev) => {
+  const del = ev.target.closest('[data-delete-group]');
+  if (del) return deleteGroup(del.dataset.deleteGroup);
   const li = ev.target.closest('[data-group]');
   if (li) openGroup(li.dataset.group);
 });
@@ -868,7 +874,7 @@ $('member-list').addEventListener('click', (ev) => {
   if (b) removeMember(b.dataset.removeMember);
 });
 $('add-member').addEventListener('click', addMember);
-$('delete-group').addEventListener('click', deleteGroup);
+$('delete-group').addEventListener('click', () => deleteGroup());
 window.addEventListener('hashchange', importFromHash);
 
 resetDraft();

@@ -1335,6 +1335,9 @@ body.theme-chat { height: 100dvh; display: flex; flex-direction: column; overflo
 .tile.split { background: #6d28d9; color: #fff; border-color: #6d28d9; }
 .tile.split small { color: rgb(255 255 255 / .95); }
 .theme-split .history li.tap { cursor: pointer; }
+.group-row { display: flex; align-items: center; gap: .75rem; }
+.group-row .grow { flex: 1; min-width: 0; }
+.group-row .icon-btn { flex: none; }
 .theme-split .history li.editing { background: var(--bg); margin: 0 -.5rem; padding-left: .5rem; padding-right: .5rem; border-radius: 10px; }
 .theme-split .pos { color: var(--ok); }
 .theme-split .neg { color: var(--bad); }
