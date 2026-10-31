@@ -388,7 +388,7 @@ export function summaryText(group, url) {
   const lines = [`💸 ${group.name}: ${money(totalSpent(group))} spent`];
   if (!transfers.length) lines.push('Everyone is settled up 🎉');
   for (const t of transfers) lines.push(`• ${name(t.from)} pays ${name(t.to)} ${money(t.cents)}`);
-  if (url) lines.push('', `Open the group: ${url}`);
+  if (url) lines.push('', `See your breakdown and pay: ${url}`);
   return lines.join('\n');
 }
 

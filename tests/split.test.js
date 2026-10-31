@@ -99,7 +99,8 @@ test('service charge then GST', () => {
 
 test('summary text for a chat', () => {
   const text = summaryText(group([exp('dinner', 'a', 9000, equal())]), 'https://x/#g=1');
-  assert.equal(text, '💸 Trip: $90.00 spent\n• Ben pays Ann $30.00\n• Cat pays Ann $30.00\n\nOpen the group: https://x/#g=1');
+  assert.ok(!summaryText(group([exp('dinner', 'a', 9000, equal())])).includes('http'), 'summary only has no link');
+  assert.equal(text, '💸 Trip: $90.00 spent\n• Ben pays Ann $30.00\n• Cat pays Ann $30.00\n\nSee your breakdown and pay: https://x/#g=1');
 });
 
 test('crc16 matches the CCITT-FALSE check value', () => {

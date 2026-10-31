@@ -77,7 +77,9 @@ Shares costs in a group of friends (a trip, a flat, a dinner) and works out who 
   balances and the expenses, with nothing to edit and nothing saved to their groups. The link carries only names,
   descriptions, amounts in the home currency and who shares each expense, plus PayNow numbers of people who are owed
   money. There's no server: anyone with the link can read what's in it. For someone who adds expenses too, "Share an
-  editable copy" sends the whole group, and opening it merges it into the copy on that phone.
+  editable copy" sends the whole group, and opening it merges it into the copy on that phone. Under Summary, "Tell
+  the group" sends who pays whom as text, either on its own ("Summary only") or with the summary link ("Summary +
+  link").
 - **Balances and settle up:** who is owed and who owes, and the fewest payments that square everyone up (at most one
   fewer than the number of people). "Mark as paid" records a payment; payments can also be added by hand.
 - **PayNow QR:** add a PayNow mobile number or UEN to a person, and each payment to them gets a PayNow QR for the exact

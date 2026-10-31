@@ -612,13 +612,18 @@ async function shareLink(editable = false) {
   }
 }
 
-async function copySummary() {
-  const text = summaryText(group(), await shareUrl());
+// Who pays whom as text, with or without the read-only summary link. Opens the share
+// sheet where there is one (straight into WhatsApp or Telegram), otherwise copies it.
+async function shareSummary(withLink) {
+  const text = summaryText(group(), withLink ? await shareUrl() : null);
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; } catch (err) { if (err?.name === 'AbortError') return; }
+  }
   try {
     await navigator.clipboard.writeText(text);
-    toast('Summary copied.');
+    toast('Summary copied. Paste it into your group chat.');
   } catch {
-    if (navigator.share) navigator.share({ text }).catch(() => {});
+    toast("Couldn't copy the summary.");
   }
 }
 
@@ -804,7 +809,8 @@ $('sh-you').addEventListener('click', (ev) => {
 });
 $('qr-close').addEventListener('click', () => $('qr-dialog').close());
 $('qr-paid').addEventListener('click', () => { $('qr-dialog').close(); if (qrTransfer) recordPayment(qrTransfer); });
-$('copy-summary').addEventListener('click', copySummary);
+$('summary-only').addEventListener('click', () => shareSummary(false));
+$('summary-link').addEventListener('click', () => shareSummary(true));
 
 $('share-link').addEventListener('click', () => shareLink());
 $('share-edit').addEventListener('click', () => shareLink(true));
