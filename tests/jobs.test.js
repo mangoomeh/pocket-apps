@@ -146,41 +146,29 @@ test('the question bank is complete, searchable and picks fresh questions to pra
   assert.equal(pickPractice([], {}), null);
 });
 
-test('prep: progress, stories and the checklist for one interview', async () => {
-  const { QUESTIONS, MOST_ASKED, CORE, progressOf, storyQuestions, newStory, storyReady, storiesFor, prepSteps, interviewsToPrep, LOGISTICS } = await import('../src/interview.js');
+test('my questions: pick from the bank, add your own, and keep answers safe', async () => {
+  const { QUESTIONS, MOST_ASKED, withFavs, myQuestions, isFav, toggleFav, addCustom, removeCustom, progressOf } = await import('../src/interview.js');
   const ids = new Set(QUESTIONS.map((q) => q.id));
-  for (const id of [...MOST_ASKED, ...CORE]) assert.ok(ids.has(id), id);
   assert.equal(MOST_ASKED.length, 10);
-  const list = QUESTIONS.filter((q) => MOST_ASKED.includes(q.id));
-  assert.deepEqual(progressOf(list, { 'intro-1': 'x', 'mot-1': '  ' }, { 'beh-1': true }), { total: 10, drafted: 1, practised: 1 });
-  const sq = storyQuestions([{ id: 'my1', cat: 'intro', q: 'Why the switch?' }]);
-  assert.ok(sq.some((q) => q.id === 'beh-1') && sq.some((q) => q.id === 'my1') && !sq.some((q) => q.id === 'prac-1'));
-  const st = { ...newStory('s1'), title: 'Rescued launch', a: 'Re-planned', r: 'Shipped on time', qids: ['beh-1', 'beh-3'] };
-  assert.ok(storyReady(st));
-  assert.ok(!storyReady({ ...st, r: ' ' }));
-  assert.deepEqual(storiesFor([st], 'beh-3').map((x) => x.id), ['s1']);
-  const empty = prepSteps({}, {});
-  assert.equal(empty.done, 0);
-  assert.equal(empty.total, 6);
-  const full = prepSteps(
-    { research: 'Fintech, 3k staff', whyCompany: 'Mission', whyRole: 'Craft', stories: ['s1', 's2', 'gone'], ask: ['ask-1'], askOwn: 'How big is the team?\n', logistics: Object.fromEntries(LOGISTICS.map(([k]) => [k, true])) },
-    { answers: Object.fromEntries(CORE.map((id) => [id, 'drafted'])), stories: [st, { ...st, id: 's2' }] },
-  );
-  assert.equal(full.done, 6);
-  assert.equal(prepSteps({ stories: ['s1', 'gone'] }, { stories: [st] }).steps.find((x) => x.id === 'stories').done, false, 'deleted stories do not count');
-  // Your own choice of questions replaces the six defaults.
-  const picked = prepSteps({ qids: ['my1', 'beh-9'] }, { answers: { my1: 'yes' } }).steps.find((x) => x.id === 'core');
-  assert.equal(picked.detail, '1 of 2 answers drafted');
-  assert.equal(picked.done, false);
-  assert.equal(prepSteps({ qids: ['my1'] }, { answers: { my1: 'yes' } }).steps.find((x) => x.id === 'core').done, true);
-  assert.equal(prepSteps({ qids: [] }, {}).steps.find((x) => x.id === 'core').detail, 'None chosen yet');
-  const T = '2026-10-31';
-  const jobs = [
-    { company: 'A', stage: 'interview', nextDate: '' },
-    { company: 'B', stage: 'applied', nextStep: 'Phone screen', nextDate: '2026-11-02' },
-    { company: 'C', stage: 'applied', nextStep: 'Send portfolio', nextDate: '2026-11-01' },
-    { company: 'D', stage: 'interview', nextStep: 'Final round', nextDate: '2026-11-05' },
-    { company: 'E', stage: 'rejected', nextDate: '2026-11-01' },
-  ];
-  assert.deepEqual(interviewsToPrep(jobs, T).map((j) => j.company), ['B', 'D', 'A']);
+  for (const id of MOST_ASKED) assert.ok(ids.has(id), id);
+  // Old saved data: your own questions and answered bank questions become My questions.
+  const old = withFavs({ answers: { 'str-2': 'Delegating', 'mot-1': '  ' }, practised: {}, custom: [{ id: 'my1', cat: 'behavioural', q: 'Why the switch?' }] });
+  assert.deepEqual(old.favs, ['my1', 'str-2']);
+  assert.equal(withFavs({ favs: [] }).favs.length, 0, 'an empty choice stays empty');
+  const p = withFavs({ answers: {}, practised: {}, custom: [] });
+  toggleFav(p, 'beh-1');
+  addCustom(p, 'my2', 'Explain a JOIN in SQL');
+  toggleFav(p, 'intro-1');
+  assert.deepEqual(myQuestions(p).map((q) => q.id), ['beh-1', 'my2', 'intro-1'], 'in the order added');
+  assert.ok(myQuestions(p)[1].mine);
+  p.answers['beh-1'] = 'The launch story';
+  p.practised['my2'] = true;
+  assert.deepEqual(progressOf(myQuestions(p), p.answers, p.practised), { total: 3, drafted: 1, practised: 1 });
+  toggleFav(p, 'beh-1');
+  assert.ok(!isFav(p, 'beh-1'));
+  assert.equal(p.answers['beh-1'], 'The launch story', 'removing a bank question keeps your answer');
+  removeCustom(p, 'my2');
+  assert.deepEqual(myQuestions(p).map((q) => q.id), ['intro-1']);
+  assert.equal(p.practised.my2, undefined);
+  assert.equal(p.custom.length, 0);
 });

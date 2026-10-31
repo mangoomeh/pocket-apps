@@ -100,10 +100,48 @@ export function pickPractice(list, practised = {}, lastId = null, rand = Math.ra
   return from.length ? from[Math.floor(rand() * from.length)] : null;
 }
 
-// ---- Layout ----------------------------------------------------------------------------------
+// ---- My questions --------------------------------------------------------------------------
+// The questions you're preparing: ones picked from the bank and your own, in the order you added
+// them (`favs` holds both kinds of id). Everything else in the bank can be ignored.
 
-// Where to start: the ten questions asked in almost every interview.
+// A quick start: the ten questions asked in almost every interview.
 export const MOST_ASKED = ['intro-1', 'mot-1', 'mot-6', 'beh-1', 'str-1', 'str-2', 'intro-5', 'mot-4', 'beh-2', 'prac-1'];
+
+// Earlier versions had no favourites: start them with your own questions and any bank question
+// you'd already answered, so nothing you wrote disappears.
+export function withFavs(prep = {}) {
+  if (Array.isArray(prep.favs)) return prep;
+  const answered = QUESTIONS.filter((q) => String(prep.answers?.[q.id] || '').trim()).map((q) => q.id);
+  return { ...prep, favs: [...(prep.custom || []).map((c) => c.id), ...answered] };
+}
+
+export function myQuestions(prep = {}) {
+  const all = Object.fromEntries(questionList(prep.custom || []).map((q) => [q.id, q]));
+  return (prep.favs || []).map((id) => all[id]).filter(Boolean);
+}
+
+export const isFav = (prep, id) => (prep.favs || []).includes(id);
+
+// Adds a bank question to My questions, or takes it out (your answer is kept, in case you add it back).
+export function toggleFav(prep, id) {
+  prep.favs = isFav(prep, id) ? prep.favs.filter((x) => x !== id) : [...(prep.favs || []), id];
+  return prep;
+}
+
+export function addCustom(prep, id, text) {
+  prep.custom = [...(prep.custom || []), { id, cat: 'mine', q: text }];
+  prep.favs = [...(prep.favs || []), id];
+  return prep;
+}
+
+// Your own questions are deleted outright, with their answers.
+export function removeCustom(prep, id) {
+  prep.custom = (prep.custom || []).filter((c) => c.id !== id);
+  prep.favs = (prep.favs || []).filter((x) => x !== id);
+  delete prep.answers?.[id];
+  delete prep.practised?.[id];
+  return prep;
+}
 
 // How far along a set of questions is: drafted (has your answer) and practised, counted separately.
 export function progressOf(list, answers = {}, practised = {}) {
@@ -112,77 +150,4 @@ export function progressOf(list, answers = {}, practised = {}) {
     drafted: list.filter((q) => String(answers[q.id] || '').trim()).length,
     practised: list.filter((q) => practised[q.id]).length,
   };
-}
-
-// ---- Story bank ------------------------------------------------------------------------------
-
-// Stories worth having ready, as starting points for a new one.
-export const STORY_IDEAS = [
-  'A big challenge you overcame',
-  'A mistake you made and fixed',
-  'A time you led or influenced others',
-  'A disagreement you handled well',
-  'A result you\'re proud of',
-  'Learning something new, fast',
-];
-
-// The questions a story can answer: the "tell me about a time" kind.
-export const STORY_CATS = new Set(['behavioural', 'teamwork', 'strengths', 'situational']);
-export const storyQuestions = (custom = []) => questionList(custom).filter((q) => STORY_CATS.has(q.cat) || q.id === 'intro-4' || q.mine);
-
-export function newStory(id) {
-  return { id, title: '', s: '', t: '', a: '', r: '', qids: [] };
-}
-
-// A story is ready to tell once it has an action and a result: the parts interviewers care about.
-export const storyReady = (st) => !!(String(st.a || '').trim() && String(st.r || '').trim());
-export const storiesFor = (stories, qid) => stories.filter((st) => (st.qids || []).includes(qid));
-
-// ---- Prep for one interview ------------------------------------------------------------------
-
-// The questions almost every interview includes: the starting choice of what to prepare.
-export const CORE = ['intro-1', 'mot-6', 'str-1', 'str-2', 'beh-1', 'prac-1'];
-
-// The questions chosen for one interview (CORE until you pick your own).
-export const chosenQuestions = (jobPrep = {}) => (Array.isArray(jobPrep.qids) ? jobPrep.qids : CORE);
-
-export const LOGISTICS = [
-  ['when', 'Time and place (or video link) confirmed'],
-  ['route', 'Route planned, or video and mic tested'],
-  ['names', 'Interviewers\' names and roles noted'],
-  ['cv', 'CV and portfolio ready to share'],
-  ['outfit', 'Outfit picked'],
-];
-
-export function freshJobPrep() {
-  return { research: '', whyCompany: '', whyRole: '', qids: null, stories: [], ask: [], askOwn: '', logistics: {} };
-}
-
-// The checklist for one interview, each step marked done, and how many are done.
-export function prepSteps(jobPrep = {}, { answers = {}, stories = [] } = {}) {
-  const p = { ...freshJobPrep(), ...jobPrep };
-  const has = (s) => !!String(s || '').trim();
-  const qids = chosenQuestions(p);
-  const drafted = qids.filter((id) => has(answers[id])).length;
-  const myStories = p.stories.filter((id) => stories.some((st) => st.id === id));
-  const askCount = p.ask.length + String(p.askOwn || '').split('\n').filter((l) => l.trim()).length;
-  const logi = LOGISTICS.filter(([k]) => p.logistics[k]).length;
-  const steps = [
-    { id: 'research', name: 'Research the company', detail: has(p.research) ? 'Notes written' : 'What they do, recent news, their customers', done: has(p.research) },
-    { id: 'why', name: 'Why this company, why this role', detail: `${[p.whyCompany, p.whyRole].filter(has).length} of 2 answered`, done: has(p.whyCompany) && has(p.whyRole) },
-    { id: 'core', name: 'Questions to prepare', detail: qids.length ? `${drafted} of ${qids.length} answers drafted` : 'None chosen yet', done: qids.length > 0 && drafted === qids.length },
-    { id: 'stories', name: 'Stories ready to tell', detail: `${myStories.length} picked (2 or more)`, done: myStories.length >= 2 },
-    { id: 'ask', name: 'Questions to ask them', detail: `${askCount} ready (2 or more)`, done: askCount >= 2 },
-    { id: 'logistics', name: 'On the day', detail: `${logi} of ${LOGISTICS.length} done`, done: logi === LOGISTICS.length },
-  ];
-  return { steps, done: steps.filter((s) => s.done).length, total: steps.length };
-}
-
-// Jobs with an interview to prepare for: interviewing, or with a dated step still to come,
-// soonest first (undated interviews last).
-export function interviewsToPrep(jobs, today) {
-  const dated = (j) => /^\d{4}-\d{2}-\d{2}$/.test(j.nextDate || '') && j.nextDate >= today;
-  return jobs
-    .filter((j) => j.stage === 'interview' || (['applied', 'offer'].includes(j.stage) && dated(j) && /interview|call|screen|chat|meet|assessment|test|round/i.test(j.nextStep || '')))
-    .sort((a, b) => (dated(a) ? a.nextDate : '9999') .localeCompare(dated(b) ? b.nextDate : '9999') || a.company.localeCompare(b.company));
 }

@@ -129,21 +129,11 @@ Keeps track of every job you apply for, what's next for each, and how the search
   portfolio). Upcoming lists them by Overdue, Today, This week and Later, with a badge on the tab for anything due.
 - **Add to calendar:** a next step with a date can go into your calendar, as a calendar file (iPhone, Outlook and
   most Android calendars add it straight away, with a reminder an hour before a timed step) or a Google Calendar link.
-- **Interview prep:** a bank of 50 common questions in 8 groups (about you, why this job, past experience,
-  strengths, what would you do, teamwork, pay and practical, questions to ask them), each with a tip on what the
-  interviewer is looking for. "Most asked" (10) comes first; the other groups are folded, each showing how many
-  answers are drafted and practised. Draft answers, mark questions practised, add your own (they get their own "My questions" group),
-  and practise with a question card (`src/interview.js`).
-- **Story bank:** write your best work stories once with Situation, Task, Action and Result, and link each to the
-  "tell me about a time…" questions it answers. Linked stories show under those questions and on the practice card.
-- **Prep for an interview:** each upcoming interview gets a checklist (from Prep, Upcoming or the job's form):
-  research notes, why this company and role (kept for that job), the questions to prepare (the six most
-  likely to start with; choose your own from any group), the stories to have
-  ready, questions to ask them, and on-the-day logistics, with a readiness score like "4/6 ready".
-- **Follow-ups:** an application with no reply after 2 weeks and nothing planned is flagged. "I followed up" checks
-  back in a week; "No reply" closes it.
-- **Stats:** applications sent and this week, how many got a reply, the typical wait for one, and how far
-  applications get (applied → interview → offer). Download everything as a CSV for a spreadsheet.
+- **Interview prep:** "My questions" holds just the questions you want to prepare: your own (technical ones, or
+  anything from a job ad) and any you star in the question bank. Draft answers, mark them practised, and practise
+  one at a time on the practice card, which can show your answer to check against. The bank (50 common questions
+  in 8 groups, each with a tip, plus the STAR method) stays folded away; "Add the 10 most asked" is a quick start
+  (`src/interview.js`).
 - Logic in `src/jobs.js`; kept on the phone and included in backups.
 
 ### 🧮 GX-84 Calculator (`calc84/`)
