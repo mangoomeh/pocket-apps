@@ -73,13 +73,12 @@ Shares costs in a group of friends (a trip, a flat, a dinner) and works out who 
 - **Summary:** the first thing a group opens on. It asks "Who are you?" once (one tap on your name), then shows what you
   owe or are owed and to whom, with PayNow and "I've paid" buttons, and a folded "How it adds up" list of your share
   of each expense.
-- **Sharing:** "Share summary link" sends a read-only snapshot. Friends tap their name and see what they owe, the
-  balances and the expenses, with nothing to edit and nothing saved to their groups. The link carries only names,
-  descriptions, amounts in the home currency and who shares each expense, plus PayNow numbers of people who are owed
-  money. There's no server: anyone with the link can read what's in it. For someone who adds expenses too, "Share an
-  editable copy" sends the whole group, and opening it merges it into the copy on that phone. Under Summary, "Tell
-  the group" sends who pays whom as text, either on its own ("Summary only") or with the summary link ("Summary +
-  link").
+- **Sharing:** all in "Tell the group" on the Summary tab. "Summary only" sends who pays whom as text; "Summary +
+  link" adds a read-only snapshot link. Friends who tap it pick their name and see what they owe, the balances and
+  the expenses, with nothing to edit and nothing saved to their groups. The link carries only names, descriptions,
+  amounts in the home currency and who shares each expense, plus PayNow numbers of people who are owed money. There's
+  no server: anyone with the link can read what's in it. For someone who adds expenses too, "Share an editable copy"
+  sends the whole group, and opening it merges it into the copy on that phone.
 - **Balances and settle up:** who is owed and who owes, and the fewest payments that square everyone up (at most one
   fewer than the number of people). "Mark as paid" records a payment; payments can also be added by hand.
 - **PayNow QR:** add a PayNow mobile number or UEN to a person, and each payment to them gets a PayNow QR for the exact

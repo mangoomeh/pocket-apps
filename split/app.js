@@ -597,16 +597,16 @@ async function shareUrl(editable = false) {
   return `${location.origin}${location.pathname}${editable ? `#g=${await encodeGroup(g)}` : `#s=${await encodeSummary(g)}`}`;
 }
 
-async function shareLink(editable = false) {
+// An editable copy for someone who adds expenses too; everyone else gets the summary.
+async function shareEditable() {
   const g = group();
-  const url = await shareUrl(editable);
+  const url = await shareUrl(true);
   if (navigator.share) {
-    const text = editable ? `An editable copy of ${g.name}` : `What everyone owes for ${g.name}`;
-    try { await navigator.share({ title: `${g.name} · Split`, text, url }); return; } catch { /* cancelled: fall back to copying */ }
+    try { await navigator.share({ title: `${g.name} · Split`, text: `An editable copy of ${g.name}`, url }); return; } catch { /* cancelled: fall back to copying */ }
   }
   try {
     await navigator.clipboard.writeText(url);
-    $('share-note').textContent = 'Link copied. Paste it into your group chat.';
+    $('share-note').textContent = 'Editable copy copied. Send it to whoever adds expenses with you.';
   } catch {
     $('share-note').textContent = url;
   }
@@ -812,8 +812,7 @@ $('qr-paid').addEventListener('click', () => { $('qr-dialog').close(); if (qrTra
 $('summary-only').addEventListener('click', () => shareSummary(false));
 $('summary-link').addEventListener('click', () => shareSummary(true));
 
-$('share-link').addEventListener('click', () => shareLink());
-$('share-edit').addEventListener('click', () => shareLink(true));
+$('share-edit').addEventListener('click', shareEditable);
 function setMe(id) {
   group().me = id;
   if (!editingId) $('paid-by').innerHTML = ''; // so "Paid by" now defaults to you

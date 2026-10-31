@@ -125,30 +125,24 @@
         </div>
         <div class="card">
           <h2>Tell the group</h2>
-          <p class="hint">Sends who pays whom, ready for WhatsApp or Telegram. With the link, friends can also tap it to
-            see their own breakdown and pay by PayNow.</p>
+          <p class="hint">Sends who pays whom, ready for WhatsApp or Telegram. With the link, friends can tap it to see
+            their own breakdown and pay by PayNow (add numbers under People). The link is a read-only snapshot, so send
+            a new one after expenses change. Anyone with it can read the names and amounts.</p>
           <div class="actions">
             <button class="secondary" id="summary-only">Summary only</button>
             <button class="primary" id="summary-link">Summary + link</button>
           </div>
-        </div>
-      </section>
-
-      <section data-panel="people" hidden>
-        <div class="card">
-          <h2>Share with the group</h2>
-          <p class="hint">Sends a read-only summary: friends tap their name and see what they owe, with PayNow if you've
-            added numbers below. The link is a snapshot, so share a new one after expenses change. Anyone with the link
-            can read the names and amounts in it.</p>
-          <div class="actions"><button class="primary" id="share-link">Share summary link</button></div>
-          <p class="hint" id="share-note"></p>
           <details class="share-edit">
             <summary>Someone else adding expenses too?</summary>
             <p class="hint">Send them an editable copy instead. Each phone keeps its own copy, so you both send each other a
               new copy after adding expenses; opening one merges it in, so nothing is lost.</p>
             <div class="actions"><button class="secondary" id="share-edit">Share an editable copy</button></div>
+            <p class="hint" id="share-note"></p>
           </details>
         </div>
+      </section>
+
+      <section data-panel="people" hidden>
         <div class="card">
           <h2>Who are you?</h2>
           <p class="hint">Only saved on this phone. It's used to show what you owe.</p>
