@@ -102,11 +102,13 @@
             <select id="paid-to"></select>
           </label>
           <div id="split-field">
-            <div class="seg" role="radiogroup" aria-label="Split">
-              <label><input type="radio" name="split" value="equal" checked> Equally</label>
-              <label><input type="radio" name="split" value="exact"> Amounts</label>
-              <label><input type="radio" name="split" value="weights"> Shares</label>
+            <p class="field-label">How to split it</p>
+            <div class="seg seg-2line" role="radiogroup" aria-label="How to split it">
+              <label><input type="radio" name="split" value="equal" checked> Equally<small>same each</small></label>
+              <label><input type="radio" name="split" value="exact"> Amounts<small>type each</small></label>
+              <label><input type="radio" name="split" value="weights"> Shares<small>1×, 2×, 3×</small></label>
             </div>
+            <p class="hint split-hint" id="split-hint"></p>
             <ul class="denoms split-rows" id="split-rows"></ul>
           </div>
           <p class="status" id="form-status" role="status" aria-live="polite" hidden></p>

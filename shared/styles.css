@@ -1361,6 +1361,11 @@ body.theme-chat { height: 100dvh; display: flex; flex-direction: column; overflo
 .check-row input, .big-check { width: 1.35rem; height: 1.35rem; accent-color: var(--accent); flex: none; }
 .check-row small { color: var(--muted); font-weight: 600; }
 .split-rows { margin-top: .5rem; }
+#split-field .field-label { margin: 1rem 0 0; font-size: .9rem; color: var(--muted); }
+#split-field .seg { margin-top: .4rem; }
+.seg-2line label { display: flex; flex-direction: column; align-items: center; gap: .1rem; line-height: 1.2; padding: .55rem .3rem; }
+.seg-2line label small { font-weight: 500; font-size: .72rem; opacity: .75; }
+.split-hint { margin: .55rem 0 0; }
 .charges .check-row { margin-top: .55rem; gap: .4rem; }
 .charges .check-row input[type="checkbox"] { margin-right: .15rem; }
 .check-row .rate-input { width: 3.6rem; height: auto; flex: none; accent-color: auto; font: inherit; text-align: right; padding: .3rem .45rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-variant-numeric: tabular-nums; }

@@ -293,11 +293,26 @@ function renderForm() {
   $('save-expense').disabled = !!formProblem(e);
 }
 
+// One line under the split choice saying what it does, with the real numbers once there are some.
+function splitHint(e) {
+  const cur = formCurrency();
+  if (draft.split === 'equal') {
+    const n = draft.among.size;
+    if (!e.cents || !n) return "Everyone ticked pays the same. Untick anyone who wasn't part of it.";
+    return `Each of the ${n} people ticked pays ${formatAmount(Math.round(e.cents / n), cur)}. Untick anyone who wasn't part of it.`;
+  }
+  if (draft.split === 'exact') return 'Type what each person had, e.g. from the receipt. The amounts need to add up to the total.';
+  const total = Object.values(draft.weights).reduce((a, w) => a + (w > 0 ? w : 0), 0);
+  const one = e.cents && total ? ` Here 1 share is ${formatAmount(Math.round(e.cents / total), cur)}.` : '';
+  return `Someone with 2 shares pays twice as much as someone with 1 (e.g. 2 nights instead of 1); 0 leaves them out.${one}`;
+}
+
 function renderSplitRows() {
   const g = group();
   const ids = liveMembers(g).map((m) => m.id);
   const e = formExpense();
   const shares = e.kind === 'expense' ? sharesOf(e, ids) : {};
+  $('split-hint').textContent = splitHint(e);
   $('split-rows').innerHTML = liveMembers(g).map((m) => {
     const share = shares[m.id] ? formatAmount(shares[m.id], formCurrency()) : '—';
     let control;
