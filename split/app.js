@@ -35,6 +35,8 @@ const group = () => state.groups.find((g) => g.id === state.current) || null;
 const liveMembers = (g) => g.members.filter((m) => !m.deleted);
 const memberName = (g, id) => g.members.find((m) => m.id === id)?.name ?? '?';
 const touch = (record) => { record.updatedAt = Date.now(); return record; };
+// A thin outline bin, drawn in the text colour.
+const BIN_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
 const money = (cents, g = group()) => formatAmount(cents, homeOf(g));
 // A share kept exact (e.g. 3133.75 cents is $31.3375), with up to 4 decimal places and
 // ≈ when it goes on further (like $3.3333…).
@@ -216,10 +218,11 @@ function renderGroups() {
   $('group-list').innerHTML = state.groups.map((g) => `
     <li class="tap group-row" data-group="${esc(g.id)}">
       <div class="grow">
-        <div class="top"><strong>${esc(g.name)}</strong><span class="amt">${money(totalSpent(g), g)}</span></div>
+        <strong>${esc(g.name)}</strong>
         <div class="meta">${liveMembers(g).length} people${myLine(g) ? ` · ${esc(myLine(g))}` : ''}</div>
       </div>
-      <button class="icon-btn" data-delete-group="${esc(g.id)}" aria-label="Delete ${esc(g.name)}" title="Delete group">🗑</button>
+      <span class="amt">${money(totalSpent(g), g)}</span>
+      <button class="bin-btn" data-delete-group="${esc(g.id)}" aria-label="Delete ${esc(g.name)}" title="Delete group">${BIN_ICON}</button>
     </li>`).join('');
 }
 
