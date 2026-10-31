@@ -21,8 +21,9 @@
   </header>
 
   <nav class="tabs" role="tablist">
-    <button role="tab" data-tab="list" aria-selected="true">Applications</button>
+    <button role="tab" data-tab="list" aria-selected="true">Jobs</button>
     <button role="tab" data-tab="upcoming">Upcoming <span class="jb-count" id="upcoming-count" hidden></span></button>
+    <button role="tab" data-tab="prep">Prep</button>
     <button role="tab" data-tab="stats">Stats</button>
   </nav>
 
@@ -41,6 +42,30 @@
 
     <section data-panel="upcoming" hidden>
       <div id="upcoming"></div>
+    </section>
+
+    <section data-panel="prep" hidden>
+      <div class="card jb-practice" id="practice"></div>
+      <details class="card jb-star">
+        <summary><b>The STAR method</b> <span class="muted">for “tell me about a time…”</span></summary>
+        <ol class="jb-star-list" id="star"></ol>
+        <p class="hint">Aim for about two minutes. Prepare five or six stories (a challenge, a mistake, leading, a conflict, a win) and you can bend them to fit most questions.</p>
+      </details>
+      <div class="card jb-tools">
+        <input class="jb-search" id="q-search" type="search" placeholder="Search questions…" autocomplete="off" aria-label="Search questions">
+        <div class="jb-filters" id="q-filters" role="group" aria-label="Category"></div>
+      </div>
+      <div class="card jb-list-card">
+        <div class="jb-qlist" id="q-list"></div>
+        <p class="hint" id="q-empty" hidden></p>
+      </div>
+      <div class="card">
+        <h2>Add your own question</h2>
+        <p class="hint">Something you were asked, or expect to be: a question from a job ad, or about your own background.</p>
+        <label class="field"><span>Question</span><input id="q-new" autocomplete="off" placeholder="e.g. Why did you switch from finance to design?"></label>
+        <label class="field"><span>Category</span><select id="q-new-cat"></select></label>
+        <div class="actions"><button class="primary" id="q-add">Add question</button></div>
+      </div>
     </section>
 
     <section data-panel="stats" hidden>
@@ -77,9 +102,14 @@
         <label class="field"><span>Location</span><input id="f-location" autocomplete="off" placeholder="e.g. Singapore · hybrid"></label>
         <div class="jb-next">
           <p class="jb-next-title">Next step</p>
+          <label class="field"><span>What</span><input id="f-next" autocomplete="off" placeholder="e.g. Phone screen with the recruiter"></label>
           <div class="jb-two">
-            <label class="field"><span>What</span><input id="f-next" autocomplete="off" placeholder="e.g. Phone screen"></label>
-            <label class="field"><span>When</span><input id="f-next-date" type="date"></label>
+            <label class="field"><span>Date</span><input id="f-next-date" type="date"></label>
+            <label class="field"><span>Time <small>(optional)</small></span><input id="f-next-time" type="time"></label>
+          </div>
+          <div class="jb-cal" id="cal-row" hidden>
+            <button type="button" class="secondary small" id="cal-ics">📅 Add to calendar</button>
+            <a class="jb-cal-g" id="cal-google" target="_blank" rel="noopener noreferrer">Google Calendar</a>
           </div>
         </div>
         <div class="field">

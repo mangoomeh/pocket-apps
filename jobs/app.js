@@ -1,8 +1,9 @@
 import { newId } from '../src/sync.js';
 import {
   STAGES, CLOSED, stage, isActive, newJob, moveStage, needsFollowUp, upcoming, relDay, stats, matches, sortJobs, toCsv,
-  safeUrl, localIso, isIsoDate,
+  safeUrl, localIso, isIsoDate, nextStepIcs, googleCalendarUrl,
 } from '../src/jobs.js';
+import { CATEGORIES as Q_CATS, QUESTIONS, STAR, questionList, pickPractice } from '../src/interview.js';
 import { $, esc, switchTab, toast } from '../shared/ui.js';
 
 const STORAGE_KEY = 'jobs-v1';
@@ -10,12 +11,17 @@ const FOLLOW_UP_DAYS = 14;
 
 // ---- Persistent state -----------------------------------------------------------------
 
+// Interview prep: your answers and "practised" marks by question id, and your own questions.
+function freshPrep() {
+  return { answers: {}, practised: {}, custom: [], cat: 'all' };
+}
+
 function load() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (saved && Array.isArray(saved.jobs)) return { filter: 'active', ...saved };
+    if (saved && Array.isArray(saved.jobs)) return { filter: 'active', ...saved, prep: { ...freshPrep(), ...saved.prep } };
   } catch { /* storage unavailable or corrupt: start fresh */ }
-  return { jobs: [], filter: 'active' };
+  return { jobs: [], filter: 'active', prep: freshPrep() };
 }
 
 function save() {
@@ -39,6 +45,7 @@ function render() {
   renderFilters();
   renderList();
   renderUpcoming();
+  renderPrep();
   renderStats();
 }
 
@@ -76,6 +83,14 @@ function renderFilters() {
   }).join('');
 }
 
+const CAL_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg>';
+
+// "14:30" as "2:30 pm".
+function timeText(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  return `${h % 12 || 12}${m ? `:${String(m).padStart(2, '0')}` : ''} ${h < 12 ? 'am' : 'pm'}`;
+}
+
 const badge = (company) => esc([...String(company).trim()][0]?.toUpperCase() || '?');
 const pill = (id) => `<span class="jb-pill st-${id}">${stage(id).name}</span>`;
 
@@ -83,7 +98,7 @@ const pill = (id) => `<span class="jb-pill st-${id}">${stage(id).name}</span>`;
 function statusLine(j) {
   const t = today();
   if (j.nextStep || isIsoDate(j.nextDate)) {
-    const when = isIsoDate(j.nextDate) ? relDay(j.nextDate, t) : '';
+    const when = isIsoDate(j.nextDate) ? `${relDay(j.nextDate, t)}${j.nextTime ? ` at ${timeText(j.nextTime)}` : ''}` : '';
     const late = isIsoDate(j.nextDate) && j.nextDate < t && isActive(j);
     return `<span class="${late ? 'jb-late' : 'jb-next-line'}">→ ${esc(j.nextStep || 'Next step')}${when ? ` · ${when}` : ''}</span>`;
   }
@@ -115,7 +130,7 @@ function renderList() {
   $('nudge').innerHTML = `<span aria-hidden="true">⏰</span><span>${follow} application${follow === 1 ? " hasn't" : "s haven't"} heard back in ${FOLLOW_UP_DAYS / 7} weeks. <b>Follow up?</b></span>`;
   // With nothing saved yet, the empty card's own button is the way in.
   $('search').closest('.card').hidden = !state.jobs.length;
-  $('add').hidden = !state.jobs.length;
+  showAdd();
   $('empty').hidden = list.length > 0;
   $('job-list').hidden = !list.length;
   if (!state.jobs.length) {
@@ -147,8 +162,9 @@ function renderUpcoming() {
       <div class="jb-main">
         <div class="jb-top"><strong>${esc(j.nextStep || 'Next step')}</strong></div>
         <div class="jb-sub">${esc([j.role, j.company].filter(Boolean).join(' · '))}</div>
-        <div class="jb-meta">${relDay(j.nextDate, t)}</div>
+        <div class="jb-meta">${relDay(j.nextDate, t)}${j.nextTime ? ` · ${timeText(j.nextTime)}` : ''}</div>
       </div>
+      <button class="jb-cal-btn" data-cal="${esc(j.id)}" aria-label="Add ${esc(j.nextStep || 'next step')} to your calendar" title="Add to calendar">${CAL_ICON}</button>
     </li>`;
   let html = groups.map(([name, xs]) => `<div class="card"><h2>${name}</h2><ul class="jb-list">${xs.map(stepRow).join('')}</ul></div>`).join('');
   if (follow.length) {
@@ -205,6 +221,64 @@ function renderStats() {
     </div>`;
 }
 
+// ---- Interview prep -------------------------------------------------------------------------
+
+let practiceId = null; // the question on the practice card
+let showTip = false;
+const openQs = new Set(); // questions expanded in the list, kept open across re-renders
+const prep = () => state.prep;
+const qCat = (id) => Q_CATS.find((c) => c.id === id) || { name: 'My questions', icon: '✏️' };
+const allQuestions = () => questionList(prep().custom);
+
+function renderPrep() {
+  const p = prep();
+  const pool = questionList(p.custom, { cat: p.cat });
+  if (!pool.some((x) => x.id === practiceId)) { practiceId = pickPractice(pool, p.practised)?.id ?? null; showTip = false; }
+  const cur = allQuestions().find((x) => x.id === practiceId);
+  const total = allQuestions().length;
+  const done = allQuestions().filter((x) => p.practised[x.id]).length;
+  $('practice').innerHTML = cur ? `
+    <div class="jb-practice-head"><span>${qCat(cur.cat).icon} ${esc(qCat(cur.cat).name)}</span><span>${done} of ${total} practised</span></div>
+    <div class="jb-progress" aria-hidden="true"><span style="width:${total ? (done / total) * 100 : 0}%"></span></div>
+    <p class="jb-practice-q">${esc(cur.q)}</p>
+    <p class="hint">Answer it out loud, as if you're in the room. Two minutes at most.</p>
+    ${cur.tip ? `<p class="jb-tip" ${showTip ? '' : 'hidden'}>💡 ${esc(cur.tip)}</p>` : ''}
+    <div class="jb-practice-btns">
+      ${cur.tip ? `<button class="secondary small" data-act="tip">${showTip ? 'Hide tip' : 'Show tip'}</button>` : ''}
+      <button class="secondary small" data-act="done" aria-pressed="${!!p.practised[cur.id]}">${p.practised[cur.id] ? '✓ Practised' : 'Mark practised'}</button>
+      <button class="primary small" data-act="next">Next question →</button>
+    </div>` : '<p class="hint">No questions here yet.</p>';
+
+  $('star').innerHTML = STAR.map(([l, name, text]) => `<li><b class="jb-star-l">${l}</b><div><b>${name}</b><span>${text}</span></div></li>`).join('');
+
+  const count = (cat) => questionList(p.custom, { cat }).length;
+  const chips = [['all', 'All'], ...(p.custom.length ? [['mine', '✏️ Mine']] : []), ...Q_CATS.map((c) => [c.id, `${c.icon} ${c.name}`])];
+  $('q-filters').innerHTML = chips.map(([id, name]) => `<button class="jb-chip" data-qcat="${id}" aria-pressed="${p.cat === id}">${esc(name)} <span>${count(id)}</span></button>`).join('');
+
+  const list = questionList(p.custom, { cat: p.cat, query: $('q-search').value });
+  $('q-list').innerHTML = list.map((x) => `
+    <details class="jb-q ${p.practised[x.id] ? 'done' : ''}" data-q="${esc(x.id)}" ${openQs.has(x.id) ? 'open' : ''}>
+      <summary><span class="jb-q-tick" aria-hidden="true">${p.practised[x.id] ? '✓' : ''}</span><span class="jb-q-text">${esc(x.q)}</span>${p.answers[x.id] ? '<span class="jb-q-has" title="Has your answer">✎</span>' : ''}</summary>
+      <div class="jb-q-body">
+        ${x.tip ? `<p class="jb-tip">💡 ${esc(x.tip)}</p>` : ''}
+        <label class="field"><span>Your answer</span><textarea rows="4" data-answer="${esc(x.id)}" placeholder="Key points, or your STAR story…">${esc(p.answers[x.id] || '')}</textarea></label>
+        <div class="jb-q-actions">
+          <label class="check-row"><input type="checkbox" data-practised="${esc(x.id)}" ${p.practised[x.id] ? 'checked' : ''}><span>Practised</span></label>
+          ${x.mine ? `<button class="text-btn danger-text" data-del-q="${esc(x.id)}">Delete</button>` : ''}
+        </div>
+      </div>
+    </details>`).join('');
+  $('q-empty').hidden = list.length > 0;
+  $('q-empty').textContent = $('q-search').value ? `No questions match “${$('q-search').value}”.` : 'No questions here yet.';
+  if (!$('q-new-cat').options.length) $('q-new-cat').innerHTML = Q_CATS.map((c) => `<option value="${c.id}">${c.icon} ${esc(c.name)}</option>`).join('');
+}
+
+function setPractised(id, on) {
+  if (on) prep().practised[id] = true; else delete prep().practised[id];
+  save();
+  renderPrep();
+}
+
 // ---- The add / edit sheet -----------------------------------------------------------------
 
 function renderStagePick() {
@@ -230,6 +304,7 @@ function openSheet(id = null) {
   $('f-location').value = j?.location || '';
   $('f-next').value = j?.nextStep || '';
   $('f-next-date').value = j?.nextDate || '';
+  $('f-next-time').value = j?.nextTime || '';
   $('f-link').value = j?.link || '';
   $('f-contact').value = j?.contact || '';
   $('f-notes').value = j?.notes || '';
@@ -240,6 +315,7 @@ function openSheet(id = null) {
   </ol></div>` : '';
   renderStagePick();
   updateLink();
+  updateCal();
   $('sheet').showModal();
   if (!j) $('f-company').focus();
 }
@@ -260,6 +336,7 @@ function saveSheet() {
     location: $('f-location').value.trim(),
     nextStep: $('f-next').value.trim(),
     nextDate: isIsoDate($('f-next-date').value) ? $('f-next-date').value : '',
+    nextTime: /^\d{2}:\d{2}$/.test($('f-next-time').value) && isIsoDate($('f-next-date').value) ? $('f-next-time').value : '',
     link: $('f-link').value.trim(),
     contact: $('f-contact').value.trim(),
     notes: $('f-notes').value.trim(),
@@ -281,6 +358,42 @@ function saveSheet() {
   return true;
 }
 
+// ---- Calendar ---------------------------------------------------------------------------------
+
+// The job as the form describes it right now, so the calendar buttons work before saving.
+function formJob() {
+  const j = state.jobs.find((x) => x.id === editingId);
+  return {
+    id: j?.id || 'new',
+    company: $('f-company').value.trim() || 'Interview',
+    role: $('f-role').value.trim(),
+    location: $('f-location').value.trim(),
+    link: $('f-link').value.trim(),
+    contact: $('f-contact').value.trim(),
+    nextStep: $('f-next').value.trim(),
+    nextDate: $('f-next-date').value,
+    nextTime: $('f-next-time').value,
+  };
+}
+
+function updateCal() {
+  const job = formJob();
+  const url = googleCalendarUrl(job);
+  $('cal-row').hidden = !url;
+  if (url) $('cal-google').href = url;
+}
+
+// A calendar file: iPhone, Outlook and most Android calendars offer to add it straight away.
+function downloadIcs(job) {
+  const text = job && nextStepIcs(job);
+  if (!text) return toast('Give the next step a date first.');
+  const blob = new Blob([text], { type: 'text/calendar' });
+  const name = `${job.company} ${job.nextStep || 'next step'}`.replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'interview';
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${name}.ics` });
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+
 function deleteJob() {
   const j = state.jobs.find((x) => x.id === editingId);
   if (!j || !confirm(`Delete ${j.company}${j.role ? ` (${j.role})` : ''}? This can't be undone.`)) return;
@@ -293,7 +406,10 @@ function deleteJob() {
 
 // ---- Wiring -----------------------------------------------------------------------------
 
-document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+// The Add button is for applications, so it shows only where they're listed.
+let tab = 'list';
+const showAdd = () => { $('add').hidden = !state.jobs.length || !['list', 'upcoming'].includes(tab); };
+document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab; switchTab(tab); showAdd(); }));
 $('search').addEventListener('input', () => { query = $('search').value; renderList(); });
 $('filters').addEventListener('click', (ev) => {
   const b = ev.target.closest('[data-filter]');
@@ -309,6 +425,8 @@ $('empty').addEventListener('click', (ev) => { if (ev.target.closest('[data-acti
 
 for (const el of [$('job-list'), $('upcoming')]) {
   el.addEventListener('click', (ev) => {
+    const cal = ev.target.closest('[data-cal]');
+    if (cal) { downloadIcs(state.jobs.find((x) => x.id === cal.dataset.cal)); return; }
     const followed = ev.target.closest('[data-followed]');
     const ghost = ev.target.closest('[data-ghost]');
     if (followed || ghost) {
@@ -346,6 +464,8 @@ $('f-stage').addEventListener('click', (ev) => {
   renderStagePick();
 });
 $('f-link').addEventListener('input', updateLink);
+for (const id of ['f-next', 'f-next-date', 'f-next-time', 'f-company', 'f-role', 'f-location']) $(id).addEventListener('input', updateCal);
+$('cal-ics').addEventListener('click', () => downloadIcs(formJob()));
 $('form').addEventListener('submit', (ev) => { if (!saveSheet()) ev.preventDefault(); });
 $('cancel').addEventListener('click', () => $('sheet').close());
 $('delete').addEventListener('click', deleteJob);
@@ -355,6 +475,64 @@ $('export').addEventListener('click', () => {
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `job-applications-${today()}.csv` });
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+
+$('practice').addEventListener('click', (ev) => {
+  const act = ev.target.closest('[data-act]')?.dataset.act;
+  if (act === 'tip') { showTip = !showTip; renderPrep(); }
+  if (act === 'done') setPractised(practiceId, !prep().practised[practiceId]);
+  if (act === 'next') {
+    practiceId = pickPractice(questionList(prep().custom, { cat: prep().cat }), prep().practised, practiceId)?.id ?? null;
+    showTip = false;
+    renderPrep();
+  }
+});
+$('q-filters').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-qcat]');
+  if (!b) return;
+  prep().cat = b.dataset.qcat;
+  save();
+  renderPrep();
+});
+$('q-search').addEventListener('input', renderPrep);
+$('q-list').addEventListener('toggle', (ev) => {
+  const d = ev.target.closest('[data-q]');
+  if (d) { if (d.open) openQs.add(d.dataset.q); else openQs.delete(d.dataset.q); }
+}, true);
+// Typing an answer saves as you go, without redrawing (so the box keeps focus).
+$('q-list').addEventListener('input', (ev) => {
+  const id = ev.target.dataset.answer;
+  if (!id) return;
+  const text = ev.target.value;
+  if (text.trim()) prep().answers[id] = text; else delete prep().answers[id];
+  save();
+});
+$('q-list').addEventListener('change', (ev) => {
+  const id = ev.target.dataset.practised;
+  if (id) setPractised(id, ev.target.checked);
+  if (ev.target.dataset.answer) renderPrep(); // shows the ✎ once you leave the box
+});
+$('q-list').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-del-q]');
+  if (!b || !confirm('Delete this question and your answer to it?')) return;
+  const id = b.dataset.delQ;
+  prep().custom = prep().custom.filter((c) => c.id !== id);
+  delete prep().answers[id];
+  delete prep().practised[id];
+  save();
+  renderPrep();
+});
+$('q-add').addEventListener('click', () => {
+  const q = $('q-new').value.trim();
+  if (!q) return toast('Type the question first.');
+  const id = `my-${newId()}`;
+  prep().custom.unshift({ id, cat: $('q-new-cat').value, q });
+  openQs.add(id);
+  prep().cat = 'mine';
+  $('q-new').value = '';
+  save();
+  renderPrep();
+  toast('Added to My questions.');
 });
 
 render();

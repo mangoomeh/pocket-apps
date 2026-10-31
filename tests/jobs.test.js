@@ -105,3 +105,42 @@ test('links are only ever http(s)', () => {
   assert.equal(safeUrl('javascript:alert(1)'), '');
   assert.equal(safeUrl(''), '');
 });
+
+test('a next step becomes a calendar event, timed or all day', async () => {
+  const { nextStepIcs, googleCalendarUrl } = await import('../src/jobs.js');
+  const j = newJob({ company: 'Grab, Inc', role: 'Designer', location: 'One-North', nextStep: 'Final interview', nextDate: '2026-11-03', nextTime: '14:30', link: 'grab.com/jobs/1' }, T, 'j1');
+  const ics = nextStepIcs(j, new Date('2026-10-31T01:02:03Z'));
+  assert.match(ics, /^BEGIN:VCALENDAR\r\n/);
+  assert.match(ics, /\r\nDTSTART:20261103T143000\r\nDURATION:PT1H\r\n/);
+  assert.match(ics, /\r\nSUMMARY:Final interview · Grab\\, Inc\r\n/);
+  assert.match(ics, /TRIGGER:-PT1H/);
+  assert.ok(ics.split('\r\n').every((l) => new TextEncoder().encode(l).length <= 75), 'long lines are folded');
+  const allDay = nextStepIcs({ ...j, nextTime: '' });
+  assert.match(allDay, /DTSTART;VALUE=DATE:20261103\r\nDTEND;VALUE=DATE:20261104/);
+  assert.doesNotMatch(allDay, /VALARM/);
+  assert.equal(nextStepIcs({ ...j, nextDate: '' }), null);
+  const g = new URL(googleCalendarUrl(j));
+  assert.equal(g.searchParams.get('dates'), '20261103T143000/20261103T153000');
+  assert.equal(g.searchParams.get('text'), 'Final interview · Grab, Inc');
+  assert.match(g.searchParams.get('details'), /Job ad: https:\/\/grab\.com\/jobs\/1/);
+  assert.equal(new URL(googleCalendarUrl({ ...j, nextTime: '23:30' })).searchParams.get('dates'), '20261103T233000/20261104T003000');
+  assert.equal(new URL(googleCalendarUrl({ ...j, nextTime: '' })).searchParams.get('dates'), '20261103/20261104');
+});
+
+test('the question bank is complete, searchable and picks fresh questions to practise', async () => {
+  const { QUESTIONS, CATEGORIES, questionList, pickPractice } = await import('../src/interview.js');
+  assert.equal(new Set(QUESTIONS.map((q) => q.id)).size, QUESTIONS.length, 'ids are unique');
+  assert.ok(QUESTIONS.length >= 45);
+  for (const c of CATEGORIES) assert.ok(QUESTIONS.some((q) => q.cat === c.id), c.id);
+  for (const q of QUESTIONS) assert.ok(CATEGORIES.some((c) => c.id === q.cat) && q.q.endsWith('?') || q.q.endsWith('.'), q.id);
+  const custom = [{ id: 'my1', cat: 'behavioural', q: 'Why did you leave Acme?' }];
+  assert.equal(questionList(custom, { cat: 'mine' }).length, 1);
+  assert.equal(questionList(custom, { cat: 'all' }).length, QUESTIONS.length + 1);
+  assert.ok(questionList(custom, { query: 'salary' }).every((q) => /salary/i.test(q.q + q.tip)));
+  assert.ok(questionList([], { cat: 'ask' }).every((q) => q.cat === 'ask'));
+  const list = questionList([], { cat: 'practical' });
+  const practised = Object.fromEntries(list.slice(1).map((q) => [q.id, true]));
+  assert.equal(pickPractice(list, practised, null).id, list[0].id, 'unpractised first');
+  assert.notEqual(pickPractice(list, practised, list[0].id).id, list[0].id, 'never the same twice');
+  assert.equal(pickPractice([], {}), null);
+});

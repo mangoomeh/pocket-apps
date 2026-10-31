@@ -48,6 +48,7 @@ export function newJob(fields, today, id) {
     notes: '',
     nextStep: '',
     nextDate: '',
+    nextTime: '',
     ...fields,
     stage: st,
     applied: fields.applied || (st === 'wishlist' ? '' : today),
@@ -62,7 +63,7 @@ export function moveStage(job, to, today) {
   job.stage = to;
   job.history = [...(job.history || []), { stage: to, date: today }];
   if (to !== 'wishlist' && !job.applied) job.applied = today;
-  if (CLOSED.has(to)) { job.nextStep = ''; job.nextDate = ''; }
+  if (CLOSED.has(to)) { job.nextStep = ''; job.nextDate = ''; job.nextTime = ''; }
   return job;
 }
 
@@ -162,4 +163,69 @@ export function safeUrl(text) {
   if (!s) return '';
   const url = /^[a-z][a-z0-9+.-]*:/i.test(s) ? s : `https://${s}`;
   return /^https?:\/\//i.test(url) ? url : '';
+}
+
+// ---- Calendar -------------------------------------------------------------------------------
+// A job's next step as a calendar event: at its time for an hour, or all day without one.
+// Times are "floating" (no time zone), so 2 pm stays 2 pm on the phone that adds it.
+
+const icsText = (s) => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+const icsDay = (iso) => iso.replace(/-/g, '');
+const isTime = (t) => /^\d{2}:\d{2}$/.test(t || '');
+// Lines longer than 75 bytes are folded onto continuation lines, as the format requires.
+function fold(line) {
+  const out = [];
+  let cur = '';
+  for (const ch of line) {
+    if (new TextEncoder().encode(cur + ch).length > (out.length ? 74 : 75)) { out.push(cur); cur = ''; }
+    cur += ch;
+  }
+  return [...out, cur].join('\r\n ');
+}
+
+function eventText(job) {
+  const title = `${job.nextStep || 'Next step'} · ${job.company}`;
+  const details = [
+    job.role && `${job.role} at ${job.company}`,
+    job.contact && `Contact: ${job.contact}`,
+    safeUrl(job.link) && `Job ad: ${safeUrl(job.link)}`,
+  ].filter(Boolean).join('\n');
+  return { title, details };
+}
+
+export function nextStepIcs(job, now = new Date()) {
+  if (!isIsoDate(job.nextDate)) return null;
+  const stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const { title, details } = eventText(job);
+  const when = isTime(job.nextTime)
+    ? [`DTSTART:${icsDay(job.nextDate)}T${job.nextTime.replace(':', '')}00`, 'DURATION:PT1H']
+    : [`DTSTART;VALUE=DATE:${icsDay(job.nextDate)}`, `DTEND;VALUE=DATE:${icsDay(addDays(job.nextDate, 1))}`];
+  const lines = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Pocket Apps//Job Tracker//EN', 'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT', `UID:${job.id}-${icsDay(job.nextDate)}@pocket-apps`, `DTSTAMP:${stamp}`, ...when,
+    `SUMMARY:${icsText(title)}`,
+    ...(details ? [`DESCRIPTION:${icsText(details)}`] : []),
+    ...(job.location ? [`LOCATION:${icsText(job.location)}`] : []),
+    ...(isTime(job.nextTime) ? ['BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsText(title)}`, 'TRIGGER:-PT1H', 'END:VALARM'] : []),
+    'END:VEVENT', 'END:VCALENDAR',
+  ];
+  return `${lines.map(fold).join('\r\n')}\r\n`;
+}
+
+// The same event as a Google Calendar "add event" link.
+export function googleCalendarUrl(job) {
+  if (!isIsoDate(job.nextDate)) return null;
+  const { title, details } = eventText(job);
+  let dates;
+  if (isTime(job.nextTime)) {
+    const [h, m] = job.nextTime.split(':').map(Number);
+    const endMin = h * 60 + m + 60;
+    const endDay = endMin >= 1440 ? addDays(job.nextDate, 1) : job.nextDate;
+    const end = `${String(Math.floor(endMin / 60) % 24).padStart(2, '0')}${String(endMin % 60).padStart(2, '0')}00`;
+    dates = `${icsDay(job.nextDate)}T${job.nextTime.replace(':', '')}00/${icsDay(endDay)}T${end}`;
+  } else {
+    dates = `${icsDay(job.nextDate)}/${icsDay(addDays(job.nextDate, 1))}`;
+  }
+  const q = new URLSearchParams({ action: 'TEMPLATE', text: title, dates, details, location: job.location || '' });
+  return `https://calendar.google.com/calendar/render?${q}`;
 }

@@ -125,8 +125,14 @@ Keeps track of every job you apply for, what's next for each, and how the search
 - **Applications:** company, role, location, salary, the job ad link, a contact and notes. Each moves through
   Wishlist, Applied, Interviewing, Offer, then Accepted, Rejected, Withdrawn or No reply; every move is dated and
   shown as a history. Search, and filter by stage.
-- **Next steps:** give an application a next step and a date (an interview, a test, sending a portfolio). Upcoming
-  lists them by Overdue, Today, This week and Later, with a badge on the tab for anything due.
+- **Next steps:** give an application a next step, a date and optionally a time (an interview, a test, sending a
+  portfolio). Upcoming lists them by Overdue, Today, This week and Later, with a badge on the tab for anything due.
+- **Add to calendar:** a next step with a date can go into your calendar, as a calendar file (iPhone, Outlook and
+  most Android calendars add it straight away, with a reminder an hour before a timed step) or a Google Calendar link.
+- **Interview prep:** a bank of 50 common questions in 8 groups (about you, why this job, past experience,
+  strengths, what would you do, teamwork, pay and practical, questions to ask them), each with a tip on what the
+  interviewer is looking for. Draft your answers, mark questions practised, add your own, and practise with a
+  random question card. The STAR method is explained for "tell me about a time…" questions (`src/interview.js`).
 - **Follow-ups:** an application with no reply after 2 weeks and nothing planned is flagged. "I followed up" checks
   back in a week; "No reply" closes it.
 - **Stats:** applications sent and this week, how many got a reply, the typical wait for one, and how far
@@ -396,7 +402,7 @@ Every push to `main` runs the tests and publishes to GitHub Pages (`.github/work
 - `shared/styles.css`: shared styles, including the Sushiro theme
 - `shared/ui.js`: helpers every app uses (`$`, `esc`, `toast`, `switchTab`); `shared/backup.js`: the Backup card
 - `petty-cash/`, `sushiro/`, `split/`, `trip/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `godigital/`, `tarot/`, `jobs/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
-- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `jobs.js`, `compass.js`), with all money in integer cents
+- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `jobs.js`, `interview.js`, `compass.js`), with all money in integer cents
 - `tests/`: unit tests for `src/`, plus checks that the offline and install files are complete
 - `tools/`: `build-sw.js` (offline file list) and `build-pwa.py` (icons and manifests)
 
