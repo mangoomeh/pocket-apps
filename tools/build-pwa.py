@@ -27,6 +27,7 @@ APPS = [
     ('learnai', 'AI for Beginners', 'Learn AI', '🤖', '#1e40af'),
     ('godigital', 'Go Digital', 'Go Digital', '📱', '#0f766e'),
     ('tarot', 'Tarot', 'Tarot', '🌙', '#312e81'),
+    ('jobs', 'Job Tracker', 'Jobs', '💼', '#c2410c'),
 ]
 
 

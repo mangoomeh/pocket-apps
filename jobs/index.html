@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#c2410c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Job Tracker</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="../icons/jobs-apple.png">
+  <link rel="icon" href="../icons/jobs-192.png">
+  <script type="module" src="../shared/pwa.js"></script>
+  <link rel="stylesheet" href="../shared/styles.css">
+</head>
+<body class="theme-jobs">
+  <header class="balance">
+    <a class="back" href="../">‹ Apps</a>
+    <p class="eyebrow">Job Tracker</p>
+    <p class="big" id="headline">0 active</p>
+    <p class="muted" id="subline">Every application, its next step and how it's going</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="list" aria-selected="true">Applications</button>
+    <button role="tab" data-tab="upcoming">Upcoming <span class="jb-count" id="upcoming-count" hidden></span></button>
+    <button role="tab" data-tab="stats">Stats</button>
+  </nav>
+
+  <main>
+    <section data-panel="list">
+      <div class="card jb-tools">
+        <input class="jb-search" id="search" type="search" placeholder="Search company, role, notes…" autocomplete="off" aria-label="Search">
+        <div class="jb-filters" id="filters" role="group" aria-label="Show"></div>
+      </div>
+      <button class="jb-nudge" id="nudge" hidden></button>
+      <div class="card jb-list-card">
+        <ul class="jb-list" id="job-list"></ul>
+        <div class="jb-empty" id="empty" hidden></div>
+      </div>
+    </section>
+
+    <section data-panel="upcoming" hidden>
+      <div id="upcoming"></div>
+    </section>
+
+    <section data-panel="stats" hidden>
+      <div id="stats"></div>
+      <div class="card">
+        <h2>Export</h2>
+        <p class="hint">A spreadsheet of every application, for Excel, Numbers or Google Sheets.</p>
+        <div class="actions"><button class="secondary" id="export">Download CSV</button></div>
+      </div>
+      <p class="hint jb-foot">Everything stays on this phone, and is included in the Backup on the home screen.</p>
+    </section>
+  </main>
+
+  <button class="jb-fab" id="add" aria-label="Add an application"><span aria-hidden="true">＋</span> Add</button>
+
+  <dialog class="jb-sheet" id="sheet" aria-labelledby="sheet-title">
+    <form method="dialog" id="form" novalidate>
+      <div class="jb-sheet-head">
+        <button type="button" class="text-btn" id="cancel">Cancel</button>
+        <h2 id="sheet-title">New application</h2>
+        <button type="submit" class="text-btn strong" id="save">Save</button>
+      </div>
+      <div class="jb-sheet-body">
+        <label class="field"><span>Company</span><input id="f-company" autocomplete="off" placeholder="e.g. Grab" required></label>
+        <label class="field"><span>Role</span><input id="f-role" autocomplete="off" placeholder="e.g. Product Designer"></label>
+        <div class="field">
+          <span id="stage-label">Stage</span>
+          <div class="jb-stage-pick" id="f-stage" role="radiogroup" aria-label="Stage"></div>
+        </div>
+        <div class="jb-two">
+          <label class="field"><span>Applied on</span><input id="f-applied" type="date"></label>
+          <label class="field"><span>Salary</span><input id="f-salary" autocomplete="off" placeholder="e.g. $6–7k"></label>
+        </div>
+        <label class="field"><span>Location</span><input id="f-location" autocomplete="off" placeholder="e.g. Singapore · hybrid"></label>
+        <div class="jb-next">
+          <p class="jb-next-title">Next step</p>
+          <div class="jb-two">
+            <label class="field"><span>What</span><input id="f-next" autocomplete="off" placeholder="e.g. Phone screen"></label>
+            <label class="field"><span>When</span><input id="f-next-date" type="date"></label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-link"><span>Job ad link</span></label>
+          <div class="jb-link-row"><input id="f-link" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="careers.example.com/…"><a class="secondary btn small" id="open-link" target="_blank" rel="noopener noreferrer" hidden>Open</a></div>
+        </div>
+        <label class="field"><span>Contact</span><input id="f-contact" autocomplete="off" placeholder="Recruiter's name, email or phone"></label>
+        <label class="field"><span>Notes</span><textarea id="f-notes" rows="4" placeholder="Interview questions, who you spoke to, how it felt…"></textarea></label>
+        <p class="status bad" id="form-error" hidden></p>
+        <div id="history"></div>
+        <div class="actions" id="delete-row" hidden><button type="button" class="secondary danger" id="delete">Delete application</button></div>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
