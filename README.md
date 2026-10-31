@@ -63,8 +63,8 @@ Counts plates during a meal and works out the bill.
 
 Shares costs in a group of friends (a trip, a flat, a dinner) and works out who pays whom.
 
-- **Groups:** name a group and list the people. You can have several groups, and delete one with its 🗑 button
-  (or "Delete group" under People).
+- **Groups:** name a group and list the people. The list shows each group with what you're owed or owe in it;
+  tap Edit to delete groups (or use "Delete group" under People).
 - **Expenses:** what it was for, the amount, who paid, and how to split it: **equally** among the people you tick,
   by **exact amounts**, or by **shares** (e.g. 2 shares for someone who had two nights). Each person's part is shown as
   you type. Separate ticks for service charge and GST work out the nett total from the menu prices (GST is

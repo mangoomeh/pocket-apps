@@ -215,15 +215,28 @@ function renderGroups() {
   $('headline').textContent = 'Groups';
   $('subline').textContent = 'Share costs, see who owes whom, settle up';
   $('groups-empty').hidden = state.groups.length > 0;
-  $('group-list').innerHTML = state.groups.map((g) => `
-    <li class="tap group-row" data-group="${esc(g.id)}">
-      <div class="grow">
+  $('edit-groups').hidden = !state.groups.length;
+  if (!state.groups.length) editingGroups = false;
+  $('edit-groups').textContent = editingGroups ? 'Done' : 'Edit';
+  $('group-list').classList.toggle('editing', editingGroups);
+  $('group-list').innerHTML = state.groups.map((g) => {
+    const mine = g.me ? balances(g)[g.me] ?? 0 : null;
+    const status = mine == null ? `<span class="gr-amt">${money(totalSpent(g), g)}</span><span class="gr-label">spent</span>`
+      : mine > 0 ? `<span class="gr-amt pos">+${money(mine, g)}</span><span class="gr-label">you're owed</span>`
+        : mine < 0 ? `<span class="gr-amt neg">${money(-mine, g)}</span><span class="gr-label">you owe</span>`
+          : '<span class="gr-amt muted">Settled</span><span class="gr-label">all square</span>';
+    const right = editingGroups
+      ? `<button class="bin-btn" data-delete-group="${esc(g.id)}" aria-label="Delete ${esc(g.name)}">${BIN_ICON}</button>`
+      : `<div class="gr-status">${status}</div><span class="gr-chev" aria-hidden="true">›</span>`;
+    return `<li class="group-row" ${editingGroups ? '' : `data-group="${esc(g.id)}" role="button" tabindex="0"`}>
+      <span class="gr-badge" aria-hidden="true">${esc([...g.name.trim()][0]?.toUpperCase() || '·')}</span>
+      <div class="gr-main">
         <strong>${esc(g.name)}</strong>
-        <div class="meta">${liveMembers(g).length} people${myLine(g) ? ` · ${esc(myLine(g))}` : ''}</div>
+        <span class="gr-sub">${liveMembers(g).length} people</span>
       </div>
-      <span class="amt">${money(totalSpent(g), g)}</span>
-      <button class="bin-btn" data-delete-group="${esc(g.id)}" aria-label="Delete ${esc(g.name)}" title="Delete group">${BIN_ICON}</button>
-    </li>`).join('');
+      ${right}
+    </li>`;
+  }).join('');
 }
 
 function renderHeader() {
@@ -684,6 +697,7 @@ function deleteGroup(id = state.current) {
   toast(`Deleted "${g.name}".`);
 }
 
+let editingGroups = false; // the groups list shows delete buttons
 let pendingAdd = null; // { desc, cents } from Sushiro's "Split this bill"
 let pendingTripId = null; // the trip a new group is for, from Trip Planner
 
@@ -763,6 +777,11 @@ $('group-list').addEventListener('click', (ev) => {
   const li = ev.target.closest('[data-group]');
   if (li) openGroup(li.dataset.group);
 });
+$('group-list').addEventListener('keydown', (ev) => {
+  const li = ev.target.closest('[data-group]');
+  if (li && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); openGroup(li.dataset.group); }
+});
+$('edit-groups').addEventListener('click', () => { editingGroups = !editingGroups; render(); });
 $('create-group').addEventListener('click', createGroup);
 document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => switchTab(b.dataset.tab)));
 

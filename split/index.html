@@ -24,8 +24,11 @@
   <main id="view-groups">
     <p class="status neutral" id="pending-banner" hidden></p>
     <div class="card">
-      <h2>Your groups</h2>
-      <ul class="history" id="group-list"></ul>
+      <div class="row-head">
+        <h2>Your groups</h2>
+        <button class="text-btn" id="edit-groups" hidden>Edit</button>
+      </div>
+      <ul class="group-list" id="group-list"></ul>
       <p class="hint" id="groups-empty">No groups yet. Make one below, or open a link a friend sent you.</p>
     </div>
     <div class="card">
