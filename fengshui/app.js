@@ -1,3 +1,4 @@
+import { holdReady } from '../shared/pwa.js';
 import {
   PALACES, PALACES_EN, PALACES_ZH, TRIGRAMS, TRIGRAM_SYMBOLS, MOUNTAINS, MOUNTAIN_PINYIN, STARS, mountainOf, mountainLabel,
   mountainPalace, mountainOffset, palaceOf, houseChart, fly, annualStar, monthStar, monthOf, monthStartMs, afflictions, solarYear,
@@ -1043,4 +1044,4 @@ $('plan-svg').addEventListener('pointercancel', planPointerUp);
 $('plan-svg').addEventListener('click', planClick);
 
 renderAll();
-loadPlanImage();
+loadPlanImage().finally(holdReady());

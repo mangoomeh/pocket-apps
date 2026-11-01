@@ -4,6 +4,7 @@ import {
   counts, clearDone, uncheckAll, reorder, duplicate, summaryLine, listText, packList, unpackList,
 } from '../src/lists.js';
 import { $, esc, toast } from '../shared/ui.js';
+import { holdReady } from '../shared/pwa.js';
 
 const STORAGE_KEY = 'lists-v1';
 
@@ -492,4 +493,4 @@ window.addEventListener('storage', (e) => {
 });
 
 window.addEventListener('hashchange', route);
-route();
+Promise.resolve(route()).finally(holdReady());

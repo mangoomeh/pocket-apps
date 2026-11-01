@@ -4,6 +4,7 @@ import {
   summariseWeather, KINDS, ACTIVITIES, CATEGORIES, fullPackingList, packingProgress, encodeTrip, decodeTrip, mergeTrips,
 } from '../src/trip.js';
 import { $, esc, switchTab, toast } from '../shared/ui.js';
+import { holdReady } from '../shared/pwa.js';
 
 const STORAGE_KEY = 'trip-v1';
 
@@ -512,4 +513,4 @@ $('delete-trip').addEventListener('click', deleteTrip);
 window.addEventListener('hashchange', importFromHash);
 
 render();
-importFromHash();
+importFromHash().finally(holdReady());

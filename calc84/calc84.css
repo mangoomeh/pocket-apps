@@ -175,3 +175,9 @@ body {
   .key button { font-size: clamp(9px, 2.8vh, 13px); }
   .key.digit button { font-size: clamp(10px, 3.2vh, 15px); }
 }
+
+/* Until the keys are drawn: a spinner instead of an empty case. */
+.keys:empty { place-items: center; grid-template-rows: 1fr; grid-template-columns: 1fr; }
+.keys:empty::after { content: ''; width: 34px; height: 34px; border-radius: 50%; border: 3px solid rgb(255 255 255 / .15); border-top-color: rgb(255 255 255 / .7); animation: keys-spin .8s linear infinite; }
+@keyframes keys-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .keys:empty::after { animation-duration: 2.4s; } }

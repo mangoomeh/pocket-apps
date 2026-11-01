@@ -5,6 +5,7 @@ import {
   encodeSummary, decodeSummary,
 } from '../src/split.js';
 import { $, esc, switchTab, toast } from '../shared/ui.js';
+import { holdReady } from '../shared/pwa.js';
 
 const STORAGE_KEY = 'split-v1';
 const RATES_KEY = 'split-rates'; // today's exchange rates, so they're fetched once a day
@@ -916,4 +917,4 @@ window.addEventListener('hashchange', importFromHash);
 
 resetDraft();
 render();
-importFromHash();
+importFromHash().finally(holdReady());

@@ -2155,3 +2155,33 @@ details.card.ls-done[open] summary { margin-bottom: 0; }
 .sp-check input { width: 1.2rem; height: 1.2rem; accent-color: var(--accent); }
 .sp-check small { color: var(--muted); }
 .sp-pace-key { display: inline-block; width: 2px; height: .8rem; margin: 0 .1rem 0 .15rem; vertical-align: -.1rem; background: var(--text); border-radius: 2px; }
+
+/* ---- Loading ---------------------------------------------------------------------------------- */
+/* Until the app has drawn itself (shared/pwa.js adds .ready to <body>), a skeleton stands in
+   for the page. If that never happens, the page shows anyway after 6 seconds. */
+.boot { display: none; }
+body:not(.ready) .boot { display: block; max-width: 560px; margin: 0 auto; padding: 1rem; animation: boot-in .2s .12s both, boot-gone 0s 6s forwards; }
+body:not(.ready) main:not(.hub), body:not(.ready) .jb-fab, body:not(.ready) .ls-fab { visibility: hidden; animation: boot-show 0s 6s forwards; }
+@keyframes boot-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes boot-show { to { visibility: visible; } }
+@keyframes boot-gone { to { visibility: hidden; height: 0; padding: 0; overflow: hidden; } }
+.boot-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1rem; margin-bottom: 1rem; }
+.boot-card i { display: block; height: .8rem; margin: .7rem 0; border-radius: 6px; }
+.boot-card i:first-child { width: 45%; height: 1rem; margin-top: 0; }
+.boot-card i.w80 { width: 80%; }
+.boot-card i.w60 { width: 60%; }
+.boot-card i:last-child { margin-bottom: 0; }
+.boot-card i, body:not(.ready) .balance .big, body:not(.ready) .balance .muted:not(:empty) {
+  background: linear-gradient(90deg, var(--skel) 0 40%, var(--skel-hi) 50%, var(--skel) 60% 100%) 0 0 / 300% 100%;
+  animation: boot-shimmer 1.3s linear infinite;
+}
+body:not(.ready) .boot-card i { --skel: var(--border); --skel-hi: color-mix(in srgb, var(--border) 40%, var(--card)); }
+body:not(.ready) .balance .big, body:not(.ready) .balance .muted:not(:empty) {
+  --skel: rgb(255 255 255 / .22); --skel-hi: rgb(255 255 255 / .38);
+  color: transparent !important; width: fit-content; margin-left: auto; margin-right: auto; border-radius: 8px;
+}
+@keyframes boot-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .boot-card i, body:not(.ready) .balance .big, body:not(.ready) .balance .muted { animation: none !important; } }
+
+/* Pictures still on their way get a soft placeholder instead of a blank gap. */
+.gd-shot img, .tc-face img, .tr-detail img, .tr-thumb img { background: color-mix(in srgb, var(--border) 60%, transparent); }
