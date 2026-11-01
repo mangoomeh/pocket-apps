@@ -136,6 +136,26 @@ Keeps track of every job you apply for, what's next for each, and how the search
   (`src/interview.js`).
 - Logic in `src/jobs.js`; kept on the phone and included in backups.
 
+### 👛 Spending (`spend/`)
+
+Tracks what you spend, by category, against a monthly budget.
+
+- **Add an expense:** amount, category (10 built in, plus your own), an optional note and the date. The last
+  category you used is picked for you.
+- **Monthly budget:** set how much you want to spend in a month. The Month tab shows what's left, a bar with a
+  marker for how much of the month has gone, and how much you can spend each day to stay in budget. It warns when
+  you're spending faster than planned and on course to go over, and says when you're over.
+- **Month start:** the month can start on any day from the 1st to the 28th, so a budget can run from payday to payday.
+- **Limits per category** (optional): e.g. $400 for food; category bars turn amber near the limit and red past it.
+- **Month tab:** a chart of spending through the month against an even pace to the budget (tap to read any day),
+  spending by category, a comparison with last month by the same point, and the latest expenses. Step back through
+  past months.
+- **History:** every expense in the month by day, with search and a category filter. Tap one to edit or delete it
+  (with Undo).
+- **Monthly repeats:** rent, bills and subscriptions are added on the same day each month (or the last day of a
+  shorter month). Stop one any time; past ones stay.
+- **Export** to a CSV spreadsheet. Logic in `src/spend.js`; kept on the phone and included in backups.
+
 ### 📝 Lists (`lists/`)
 
 Lists of things to tick off: to-dos, groceries, packing, shopping, or any list you name.
@@ -412,8 +432,8 @@ Every push to `main` runs the tests and publishes to GitHub Pages (`.github/work
 - `manifest.webmanifest` in each folder, and `icons/`: what a phone uses when an app is added to the home screen
 - `shared/styles.css`: shared styles, including the Sushiro theme
 - `shared/ui.js`: helpers every app uses (`$`, `esc`, `toast`, `switchTab`); `shared/backup.js`: the Backup card
-- `petty-cash/`, `sushiro/`, `split/`, `trip/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `godigital/`, `tarot/`, `jobs/`, `lists/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
-- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `jobs.js`, `interview.js`, `lists.js`, `compass.js`), with all money in integer cents
+- `petty-cash/`, `sushiro/`, `split/`, `trip/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `godigital/`, `tarot/`, `jobs/`, `lists/`, `spend/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
+- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `jobs.js`, `interview.js`, `lists.js`, `spend.js`, `compass.js`), with all money in integer cents
 - `tests/`: unit tests for `src/`, plus checks that the offline and install files are complete
 - `tools/`: `build-sw.js` (offline file list) and `build-pwa.py` (icons and manifests)
 
