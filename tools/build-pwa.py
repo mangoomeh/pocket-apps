@@ -28,6 +28,7 @@ APPS = [
     ('godigital', 'Go Digital', 'Go Digital', '📱', '#0f766e'),
     ('tarot', 'Tarot', 'Tarot', '🌙', '#312e81'),
     ('jobs', 'Job Tracker', 'Jobs', '💼', '#c2410c'),
+    ('lists', 'Lists', 'Lists', '📝', '#15803d'),
 ]
 
 

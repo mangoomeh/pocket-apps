@@ -136,6 +136,20 @@ Keeps track of every job you apply for, what's next for each, and how the search
   (`src/interview.js`).
 - Logic in `src/jobs.js`; kept on the phone and included in backups.
 
+### 📝 Lists (`lists/`)
+
+Lists of things to tick off: to-dos, groceries, packing, shopping, or any list you name.
+
+- **Lists:** start from a kind (To-do, Groceries, Packing, Shopping or Blank), pick a name and an emoji. The home page
+  shows every list with how much is left.
+- **Items:** type and press Enter to keep adding; paste a list with one item per line to add it all (bullets,
+  numbers and checkboxes are taken off). Tick to move an item to Done, tap its text to rename or delete it, drag the
+  grip to reorder. Adding something that's already ticked brings it back, so a weekly grocery list can be reused;
+  "Untick all" starts it again and "Clear" removes done items, both with Undo.
+- **Sharing:** "Share as text" for a chat (pasting it into another list adds the items back), or "Send a copy" for a
+  link that lets someone save their own copy. Lists aren't synced between phones.
+- Logic in `src/lists.js`; kept on the phone and included in backups.
+
 ### 🧮 GX-84 Calculator (`calc84/`)
 
 A handheld graphing calculator modelled on the TI-84 Plus CE. It's a recreation, not an emulator: no Texas
@@ -398,8 +412,8 @@ Every push to `main` runs the tests and publishes to GitHub Pages (`.github/work
 - `manifest.webmanifest` in each folder, and `icons/`: what a phone uses when an app is added to the home screen
 - `shared/styles.css`: shared styles, including the Sushiro theme
 - `shared/ui.js`: helpers every app uses (`$`, `esc`, `toast`, `switchTab`); `shared/backup.js`: the Backup card
-- `petty-cash/`, `sushiro/`, `split/`, `trip/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `godigital/`, `tarot/`, `jobs/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
-- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `jobs.js`, `interview.js`, `compass.js`), with all money in integer cents
+- `petty-cash/`, `sushiro/`, `split/`, `trip/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `godigital/`, `tarot/`, `jobs/`, `lists/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
+- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `jobs.js`, `interview.js`, `lists.js`, `compass.js`), with all money in integer cents
 - `tests/`: unit tests for `src/`, plus checks that the offline and install files are complete
 - `tools/`: `build-sw.js` (offline file list) and `build-pwa.py` (icons and manifests)
 

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#15803d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Lists</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="../icons/lists-apple.png">
+  <link rel="icon" href="../icons/lists-192.png">
+  <script type="module" src="../shared/pwa.js"></script>
+  <link rel="stylesheet" href="../shared/styles.css">
+</head>
+<body class="theme-lists">
+  <header class="balance ls-head">
+    <a class="back" id="back" href="../">‹ Apps</a>
+    <p class="eyebrow" id="eyebrow">Lists</p>
+    <p class="big" id="headline">Lists</p>
+    <p class="muted" id="subline">To-dos, groceries, packing, anything</p>
+    <div class="ls-progress" id="progress" hidden><i id="progress-bar"></i></div>
+    <button class="ls-more" id="more" type="button" aria-label="List options" hidden>
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <!-- All lists -->
+    <section id="view-home">
+      <div class="card ls-home-card" id="home-card">
+        <ul class="ls-lists" id="lists"></ul>
+        <div class="ls-empty" id="home-empty" hidden>
+          <p class="ls-empty-title">Make your first list</p>
+          <p class="hint">Pick a kind to start with. You can rename it and change the emoji any time.</p>
+          <div class="ls-templates" id="quick-templates"></div>
+        </div>
+      </div>
+      <p class="hint ls-foot">Everything stays on this phone, and is included in the Backup on the home screen.</p>
+    </section>
+
+    <!-- One list -->
+    <section id="view-list" hidden>
+      <form class="card ls-add" id="add-form" autocomplete="off">
+        <input id="add-input" enterkeyhint="done" placeholder="Add an item…" aria-label="Add an item" maxlength="200">
+        <button class="ls-add-btn" type="submit" aria-label="Add">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        </button>
+      </form>
+      <div class="card ls-items-card" id="todo-card">
+        <ul class="ls-items" id="todo"></ul>
+        <p class="ls-all-done" id="all-done" hidden></p>
+      </div>
+      <details class="card ls-done" id="done-card" open>
+        <summary><span id="done-title">Done</span><span class="ls-done-actions"><button type="button" class="text-btn" id="uncheck-all">Untick all</button><button type="button" class="text-btn" id="clear-done">Clear</button></span></summary>
+        <ul class="ls-items" id="done"></ul>
+      </details>
+    </section>
+
+    <!-- A list someone sent -->
+    <section id="view-import" hidden>
+      <div class="card">
+        <h2 id="import-title">A list for you</h2>
+        <p class="hint" id="import-sub"></p>
+        <ul class="ls-preview" id="import-items"></ul>
+        <div class="actions">
+          <button type="button" class="secondary" id="import-cancel">Not now</button>
+          <button type="button" class="primary" id="import-save">Save to my lists</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button class="ls-fab" id="new-list" type="button"><span aria-hidden="true">＋</span> New list</button>
+
+  <dialog class="jb-sheet" id="sheet" aria-labelledby="sheet-title">
+    <form method="dialog" id="sheet-form" novalidate>
+      <div class="jb-sheet-head">
+        <button type="button" class="text-btn" id="sheet-cancel">Cancel</button>
+        <h2 id="sheet-title">New list</h2>
+        <button type="submit" class="text-btn strong" id="sheet-save">Create</button>
+      </div>
+      <div class="jb-sheet-body">
+        <div class="field" id="kind-field">
+          <span>Kind</span>
+          <div class="ls-templates" id="kinds" role="radiogroup" aria-label="Kind of list"></div>
+        </div>
+        <label class="field"><span>Name</span><input id="f-name" autocomplete="off" maxlength="60" placeholder="e.g. Weekend chores"></label>
+        <div class="field">
+          <span>Emoji</span>
+          <div class="ls-emojis" id="emojis" role="radiogroup" aria-label="Emoji"></div>
+        </div>
+        <div id="options" hidden>
+          <p class="field-label">This list</p>
+          <div class="ls-menu">
+            <button type="button" id="o-share">📤 Share as text</button>
+            <button type="button" id="o-link">🔗 Send a copy</button>
+            <button type="button" id="o-uncheck">↺ Untick everything</button>
+            <button type="button" id="o-duplicate">⧉ Duplicate</button>
+            <button type="button" class="danger" id="o-delete">Delete list</button>
+          </div>
+          <p class="hint">"Send a copy" gives a link; whoever opens it can save their own copy. Changes aren't synced between phones.</p>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="ls-undo" id="undo" role="status" aria-live="polite" hidden><span id="undo-text"></span><button type="button" id="undo-btn">Undo</button></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
