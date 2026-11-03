@@ -131,6 +131,28 @@
     </form>
   </dialog>
 
+  <!-- Budgets typed on phones: the same keypad, so the phone keyboard never opens. -->
+  <dialog class="jb-sheet" id="amt-sheet" aria-labelledby="amt-title">
+    <form method="dialog" id="amt-form" novalidate>
+      <div class="jb-sheet-head">
+        <button type="button" class="text-btn" id="amt-cancel">Cancel</button>
+        <h2 id="amt-title">Monthly budget</h2>
+        <button type="submit" class="text-btn strong">Save</button>
+      </div>
+      <div class="jb-sheet-body">
+        <label class="sp-amount"><span>$</span><input id="amt-input" readonly inputmode="none" autocomplete="off" placeholder="0" aria-label="Amount"></label>
+        <p class="hint sp-amt-hint" id="amt-hint"></p>
+        <div class="sp-keypad" id="amt-keypad" role="group" aria-label="Amount keypad">
+          <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
+          <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
+          <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
+          <button type="button" data-key=".">.</button><button type="button" data-key="0">0</button><button type="button" data-key="back" aria-label="Delete"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M9 6h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-6-6zM12.5 9.5l5 5M17.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <div class="actions"><button type="button" class="secondary" id="amt-clear">No budget</button></div>
+      </div>
+    </form>
+  </dialog>
+
   <div class="ls-undo" id="undo" role="status" aria-live="polite" hidden><span id="undo-text"></span><button type="button" id="undo-btn">Undo</button></div>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 

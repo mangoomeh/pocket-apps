@@ -112,7 +112,8 @@ function hasData(key) {
   return store((s) => s.getItem(key) != null) === true;
 }
 
-function showNote({ tone = '', title, body, actions = [], onDismiss }) {
+function showNote({ tone = '', title, body, actions = [], onDismiss, dismissLabel = 'Got it' }) {
+  if (document.querySelector('.store-note')) return; // one notice at a time
   const host = document.querySelector('main.hub > p') || document.querySelector('.boot') || document.querySelector('main');
   if (!host) return;
   const note = document.createElement('div');
@@ -140,7 +141,7 @@ function showNote({ tone = '', title, body, actions = [], onDismiss }) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'text-btn store-note-close';
-    b.textContent = 'Got it';
+    b.textContent = dismissLabel;
     b.addEventListener('click', () => { onDismiss(); note.remove(); });
     row.append(b);
   }
@@ -207,5 +208,28 @@ function storageNotes() {
   });
 }
 
-if (document.readyState === 'complete') storageNotes();
-else document.addEventListener('DOMContentLoaded', storageNotes, { once: true });
+// A reminder to save a backup: two weeks after an app first kept data with no backup, or a
+// month after the last one (rules in src/backup.js). Not shown alongside another notice.
+async function backupNudge() {
+  const key = document.body?.dataset.saves;
+  if (!key || !hasData(key) || document.querySelector('.store-note')) return;
+  const { BACKUP_KEYS, backupDue, ago } = await import('../src/backup.js');
+  const num = (k) => Number(store((s) => s.getItem(k))) || 0;
+  if (!num(BACKUP_KEYS.firstSeen)) store((s) => s.setItem(BACKUP_KEYS.firstSeen, String(Date.now())));
+  const last = num(BACKUP_KEYS.last);
+  if (!backupDue({ last, firstSeen: num(BACKUP_KEYS.firstSeen), snoozedAt: num(BACKUP_KEYS.snooze) })) return;
+  showNote({
+    title: last ? `Last backup: ${ago(last)}` : 'Save a backup?',
+    body: `<p>Everything you enter is kept only on this ${isIos || /Android/i.test(navigator.userAgent) ? 'phone' : 'device'}. A backup file (in Files, iCloud Drive or Google Drive) brings it back if the browser clears it or you change phones.</p>`,
+    actions: [{ ...backupAction, run: async (status, note) => { await backupAction.run(status); if (num(BACKUP_KEYS.last) > last) setTimeout(() => note.remove(), 2500); } }],
+    dismissLabel: 'Later',
+    onDismiss: () => store((s) => s.setItem(BACKUP_KEYS.snooze, String(Date.now()))),
+  });
+}
+
+function notes() {
+  storageNotes();
+  backupNudge().catch(() => {});
+}
+if (document.readyState === 'complete') notes();
+else document.addEventListener('DOMContentLoaded', notes, { once: true });

@@ -8,7 +8,7 @@ export const STORAGE_KEYS = [
 ];
 
 // Saved by apps but not worth backing up: they're refetched when missing.
-export const CACHE_KEYS = ['split-rates'];
+export const CACHE_KEYS = ['split-rates', 'pocket-last-backup', 'pocket-first-seen', 'pocket-backup-snooze'];
 
 // Each database exactly as its app opens it, so restoring never creates a mismatched one.
 export const DATABASES = [
@@ -76,4 +76,28 @@ export function describeBackup(data) {
   if ((data.databases?.['fengshui-plan'] || []).length) parts.push('a floor plan');
   const when = data.savedAt ? new Date(data.savedAt).toLocaleString('en-SG', { dateStyle: 'medium', timeStyle: 'short' }) : 'an unknown date';
   return `Saved ${when}: ${parts.join(', ')}.`;
+}
+
+// ---- Reminders --------------------------------------------------------------------------------
+// Backups are the only copy off the phone, so the apps remind people to make one.
+
+export const BACKUP_KEYS = { last: 'pocket-last-backup', firstSeen: 'pocket-first-seen', snooze: 'pocket-backup-snooze' };
+const DAY = 864e5;
+
+// True when it's time for a reminder: data kept for two weeks with no backup, or a backup over
+// 30 days old, unless "Later" was tapped in the last two weeks. Times are in ms.
+export function backupDue({ last, firstSeen, snoozedAt, now = Date.now() }) {
+  if (snoozedAt && now - snoozedAt < 14 * DAY) return false;
+  if (last) return now - last > 30 * DAY;
+  return !!firstSeen && now - firstSeen > 14 * DAY;
+}
+
+// "today", "yesterday", "5 days ago", "3 weeks ago", "2 months ago".
+export function ago(time, now = Date.now()) {
+  const days = Math.floor((now - time) / DAY);
+  if (days <= 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 14) return `${days} days ago`;
+  if (days < 60) return `${Math.floor(days / 7)} weeks ago`;
+  return `${Math.floor(days / 30)} months ago`;
 }

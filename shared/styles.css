@@ -416,7 +416,6 @@ button.small { padding: .4rem .7rem; font-size: .9rem; }
   color: #fff;
   font-weight: 700;
   font-size: .9rem;
-  box-shadow: 0 0 0 3px #c0c0c0, 0 0 0 4px #ffffff;
   position: relative;
 }
 .win-ctrls { display: flex; gap: 2px; }
@@ -440,8 +439,7 @@ button.small { padding: .4rem .7rem; font-size: .9rem; }
   color: #000;
   text-align: left;
   padding: 2.4rem .75rem .75rem;
-  margin: 3px 0 0;
-  box-shadow: none;
+  margin: 0; /* right under the title bar, so the window's edge runs on without a gap */
 }
 .theme-win95 .balance .eyebrow { opacity: 1; }
 .theme-win95 .balance .big {
@@ -487,7 +485,12 @@ button.small { padding: .4rem .7rem; font-size: .9rem; }
 .theme-win95 .tabs button[aria-selected="true"] { margin-top: 0; padding-bottom: .7rem; font-weight: 700; }
 
 main { position: relative; }
-.theme-win95 main { padding: .5rem; background: #c0c0c0; box-shadow: inset 1px 1px #ffffff; }
+.theme-win95 main { padding: .5rem; background: #c0c0c0; }
+/* One window frame (3px grey, then a white left/top and black right/bottom edge) around the
+   title bar, header, tabs and page together, at every width, so no part sticks out. */
+.theme-win95 .balance, .theme-win95 .tabs { box-shadow: 3px 0 #c0c0c0, -3px 0 #c0c0c0, 4px 0 #0a0a0a, -4px 0 #ffffff; }
+.theme-win95 .win-titlebar { box-shadow: 0 0 0 3px #c0c0c0, -4px -4px 0 #ffffff, 4px -4px 0 #0a0a0a, 4px 0 #0a0a0a, -4px 0 #ffffff; }
+.theme-win95 main { box-shadow: 3px 0 #c0c0c0, -3px 0 #c0c0c0, 4px 0 #0a0a0a, -4px 0 #ffffff, 0 3px #c0c0c0, 4px 4px #0a0a0a, -4px 4px #808080; }
 
 /* Group boxes and controls */
 .theme-win95 .card {
@@ -598,17 +601,9 @@ main { position: relative; }
   /* Windows 95: a window sitting on the teal desktop */
   .theme-win95 body { padding-top: 1.5rem; }
   .theme-win95 .win-titlebar { margin-top: 0; }
-  .theme-win95 .balance { margin: 3px auto 0; border-radius: 0; }
+  .theme-win95 .balance { margin: 0 auto; border-radius: 0; }
   .theme-win95 .tabs { border: 0; }
-  .theme-win95 .win-titlebar, .theme-win95 .balance, .theme-win95 .tabs, .theme-win95 main {
-    box-shadow: 3px 0 #c0c0c0, -3px 0 #c0c0c0, 4px 0 #0a0a0a, -4px 0 #ffffff;
-  }
-  .theme-win95 .win-titlebar { box-shadow: 0 0 0 3px #c0c0c0, -4px -4px 0 #ffffff, 4px -4px 0 #0a0a0a, 4px 0 #0a0a0a, -4px 0 #ffffff; }
-  .theme-win95 main {
-    padding: .5rem .75rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 3px 0 #c0c0c0, -3px 0 #c0c0c0, 4px 0 #0a0a0a, -4px 0 #ffffff, 0 3px #c0c0c0, 4px 4px #0a0a0a, -4px 4px #808080;
-  }
+  .theme-win95 main { padding: .5rem .75rem; margin-bottom: 1.5rem; }
 }
 
 /* ---- Sushiro receipt check ---------------------------------------------- */
@@ -2214,3 +2209,7 @@ body:not(.ready) .balance .big, body:not(.ready) .balance .muted:not(:empty) {
 .hub-foot-status { margin: .35rem 0 0; min-height: 1.2em; }
 .update-bar { position: fixed; left: 50%; top: calc(.75rem + env(safe-area-inset-top)); transform: translateX(-50%); z-index: 20; display: flex; align-items: center; gap: 1rem; width: max-content; max-width: calc(100% - 2rem); padding: .55rem .6rem .55rem 1rem; border-radius: 12px; background: var(--text); color: var(--bg); box-shadow: 0 6px 20px rgb(0 0 0 / .25); font-size: .92rem; }
 .update-bar button { border: 0; border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; font-weight: 700; padding: .35rem .75rem; cursor: pointer; }
+.backup-when { margin: .25rem 0 0; font-size: .9rem; font-weight: 600; color: var(--muted); }
+.backup-when.due { color: var(--warn); }
+.backup-when.due::before { content: '⚠ '; }
+.sp-amt-hint { text-align: center; margin: 0 0 .5rem; }

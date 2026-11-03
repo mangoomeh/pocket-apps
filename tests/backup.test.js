@@ -68,3 +68,16 @@ test('every app protects its saved data before reading it', async () => {
     assert.match(src, /keepUnreadable\(STORAGE_KEY, [^\n]+\);\nconst state = load\(\);/, dir);
   }
 });
+
+test('backup reminders: after two weeks with no backup, or a month since the last', async () => {
+  const { backupDue, ago } = await import('../src/backup.js');
+  const DAY = 864e5; const now = 100 * DAY;
+  assert.equal(backupDue({ now }), false, 'nothing kept yet');
+  assert.equal(backupDue({ firstSeen: now - 10 * DAY, now }), false);
+  assert.equal(backupDue({ firstSeen: now - 15 * DAY, now }), true);
+  assert.equal(backupDue({ firstSeen: now - 90 * DAY, last: now - 20 * DAY, now }), false);
+  assert.equal(backupDue({ last: now - 31 * DAY, now }), true);
+  assert.equal(backupDue({ last: now - 31 * DAY, snoozedAt: now - 3 * DAY, now }), false, 'Later waits two weeks');
+  assert.equal(backupDue({ last: now - 31 * DAY, snoozedAt: now - 15 * DAY, now }), true);
+  assert.deepEqual([0, 1, 5, 20, 90].map((d) => ago(now - d * DAY - 1000, now)), ['today', 'yesterday', '5 days ago', '2 weeks ago', '3 months ago']);
+});

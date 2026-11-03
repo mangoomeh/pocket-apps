@@ -262,7 +262,8 @@ function renderHistory() {
 
 function renderBudget() {
   const totalInput = $('b-total');
-  if (document.activeElement !== totalInput) totalInput.value = state.budget.total ? (state.budget.total / 100).toString() : '';
+  // Don't overwrite a box someone is typing in (a keypad-only box can always be refreshed).
+  if (document.activeElement !== totalInput || totalInput.readOnly) totalInput.value = state.budget.total ? (state.budget.total / 100).toString() : '';
   const sel = $('b-start');
   if (!sel.options.length) {
     sel.innerHTML = Array.from({ length: 28 }, (_, i) => i + 1).map((d) => `<option value="${d}">${d === 1 ? '1st (calendar month)' : `${d}${d === 2 || d === 22 ? 'nd' : d === 3 || d === 23 ? 'rd' : d === 21 ? 'st' : 'th'} of each month`}</option>`).join('');
@@ -270,7 +271,7 @@ function renderBudget() {
   sel.value = String(state.startDay);
   const focused = document.activeElement?.dataset?.catBudget;
   $('cat-budgets').innerHTML = cats().map((c) => `<label class="sp-cb-row"><span>${esc(c.emoji)} ${esc(c.name)}</span>
-    <span class="sp-money-field small"><span>$</span><input inputmode="decimal" autocomplete="off" data-cat-budget="${esc(c.id)}" value="${state.budget.cats[c.id] ? state.budget.cats[c.id] / 100 : ''}" placeholder="—" aria-label="${esc(c.name)} limit"></span></label>`).join('');
+    <span class="sp-money-field small"><span>$</span><input ${useKeypad ? `inputmode="none"${lockBox ? ' readonly' : ''}` : 'inputmode="decimal"'} autocomplete="off" data-cat-budget="${esc(c.id)}" value="${state.budget.cats[c.id] ? state.budget.cats[c.id] / 100 : ''}" placeholder="—" aria-label="${esc(c.name)} limit"></span></label>`).join('');
   if (focused) document.querySelector(`[data-cat-budget="${CSS.escape(focused)}"]`)?.focus();
   const set = Object.values(state.budget.cats).filter((b) => b > 0);
   const sumCats = set.reduce((a, b) => a + b, 0);
@@ -304,7 +305,11 @@ $('next').addEventListener('click', () => { period = shiftPeriod(period, 1); ren
 $('month-label').addEventListener('click', () => { period = periodOf(today(), state.startDay); render(); });
 $('see-all').addEventListener('click', () => showTab('history'));
 
-$('budget-card').addEventListener('click', (e) => { if (e.target.closest('[data-goto]')) { showTab('budget'); $('b-total').focus(); } });
+$('budget-card').addEventListener('click', (e) => {
+  if (!e.target.closest('[data-goto]')) return;
+  showTab('budget');
+  if (useKeypad) editTotalBudget(); else $('b-total').focus();
+});
 $('cats').addEventListener('click', (e) => {
   const b = e.target.closest('[data-cat]');
   if (!b) return;
@@ -333,10 +338,7 @@ $('b-total').addEventListener('change', (e) => {
   const v = e.target.value.trim();
   const c = v ? parseAmount(v) : 0;
   if (c === null) { toast('Type the budget as a number, like 2000'); return; }
-  state.budget.total = c;
-  save();
-  render();
-  if (c) toast(`Monthly budget set to ${round(c)}`);
+  setTotalBudget(c);
 });
 
 $('b-start').addEventListener('change', (e) => {
@@ -352,9 +354,7 @@ $('cat-budgets').addEventListener('change', (e) => {
   const v = e.target.value.trim();
   const c = v ? parseAmount(v) : 0;
   if (c === null) { toast('Type the limit as a number, like 400'); return; }
-  if (c) state.budget.cats[id] = c; else delete state.budget.cats[id];
-  save();
-  render();
+  setCatBudget(id, c);
 });
 
 $('repeats').addEventListener('click', (e) => {
@@ -443,17 +443,81 @@ function openSheet(id = null) {
 // Any touch screen gets it (some phones report a stylus or mouse as their main pointer). Only
 // phones lock the box: a touch laptop's own keyboard can still type into it.
 const useKeypad = navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse), (any-pointer: coarse)').matches;
-if (useKeypad) {
-  const amount = $('f-amount');
-  amount.readOnly = matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad/i.test(navigator.userAgent);
-  amount.inputMode = 'none';
-  $('keypad').hidden = false;
-  $('keypad').addEventListener('click', (ev) => {
+const lockBox = matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad/i.test(navigator.userAgent);
+
+// Each key types into `input`, through keypadInput's rules.
+function wireKeypad(pad, input, onKey = () => {}) {
+  pad.addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-key]');
     if (!b) return;
     if (document.activeElement !== document.body) document.activeElement?.blur?.(); // closes the keyboard if the note was open
-    amount.value = keypadInput(amount.value, b.dataset.key);
-    $('form-error').hidden = true;
+    input.value = keypadInput(input.value, b.dataset.key);
+    onKey();
+  });
+}
+
+if (useKeypad) {
+  const amount = $('f-amount');
+  amount.readOnly = lockBox;
+  amount.inputMode = 'none';
+  $('keypad').hidden = false;
+  wireKeypad($('keypad'), amount, () => { $('form-error').hidden = true; });
+}
+
+// Budgets on phones: tapping a budget box opens a small sheet with the keypad.
+let amtSave = null;
+function openAmountSheet({ title, hint, cents, onSave, clearLabel = 'No budget' }) {
+  $('amt-title').textContent = title;
+  $('amt-clear').textContent = clearLabel;
+  $('amt-hint').textContent = hint;
+  $('amt-input').value = cents ? String(cents / 100) : '';
+  amtSave = onSave;
+  $('amt-sheet').showModal();
+}
+wireKeypad($('amt-keypad'), $('amt-input'));
+$('amt-cancel').addEventListener('click', () => $('amt-sheet').close());
+$('amt-clear').addEventListener('click', () => { $('amt-sheet').close(); amtSave?.(0); });
+$('amt-form').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const v = $('amt-input').value;
+  const c = v ? parseAmount(v) : 0;
+  if (c === null) return;
+  $('amt-sheet').close();
+  amtSave?.(c);
+});
+
+function setTotalBudget(c) {
+  state.budget.total = c;
+  save();
+  render();
+  toast(c ? `Monthly budget set to ${round(c)}` : 'Monthly budget removed');
+}
+
+function setCatBudget(id, c) {
+  if (c) state.budget.cats[id] = c; else delete state.budget.cats[id];
+  save();
+  render();
+}
+
+function editTotalBudget() {
+  openAmountSheet({ title: 'Monthly budget', hint: 'How much you want to spend in a month, everything included.', cents: state.budget.total, onSave: setTotalBudget });
+}
+
+if (useKeypad) {
+  $('b-total').readOnly = lockBox;
+  $('b-total').inputMode = 'none';
+  $('b-total').addEventListener('click', editTotalBudget);
+  $('cat-budgets').addEventListener('click', (ev) => {
+    const input = ev.target.closest('[data-cat-budget]');
+    if (!input) return;
+    const c = cat(input.dataset.catBudget);
+    openAmountSheet({
+      title: `${c.emoji} ${c.name} limit`,
+      hint: `The most you want to spend on ${c.name.toLowerCase()} in a month.`,
+      cents: state.budget.cats[c.id] || 0,
+      clearLabel: 'No limit',
+      onSave: (cents) => setCatBudget(c.id, cents),
+    });
   });
 }
 // Done on the keyboard closes it, rather than saving before a category is picked.

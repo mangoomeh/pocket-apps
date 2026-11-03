@@ -1,7 +1,7 @@
 // Saves everything the apps keep on this phone to a file, and restores it (for a new phone,
 // after the browser cleared its data, or to move data between Safari and a Home Screen app).
 // Used by the Backup card on the home screen and by the storage notices (shared/pwa.js).
-import { STORAGE_KEYS, DATABASES, makeBackup, readBackup, describeBackup } from '../src/backup.js';
+import { STORAGE_KEYS, DATABASES, BACKUP_KEYS, makeBackup, readBackup, describeBackup, ago } from '../src/backup.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -51,6 +51,25 @@ async function writeDb(spec, rows) {
   }
 }
 
+// Remembers when the last backup was made, for the reminders (shared/pwa.js) and the home page.
+function recordBackup() {
+  try { localStorage.setItem(BACKUP_KEYS.last, String(Date.now())); } catch { /* reminders just keep showing */ }
+  showLastBackup();
+}
+
+export function lastBackup() {
+  try { return Number(localStorage.getItem(BACKUP_KEYS.last)) || 0; } catch { return 0; }
+}
+
+// The home page's "Last backup" line, highlighted once it's a month old or there's none.
+function showLastBackup() {
+  const el = $('backup-when');
+  if (!el) return;
+  const last = lastBackup();
+  el.textContent = last ? `Last backup: ${ago(last)}` : 'No backup yet';
+  el.classList.toggle('due', !last || Date.now() - last > 30 * 864e5);
+}
+
 // `status(text, kind)` reports progress and the result.
 export async function saveBackup(status) {
   status('Collecting…');
@@ -70,6 +89,7 @@ export async function saveBackup(status) {
     if (navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({ files: [file], title: 'Pocket Apps backup' });
+        recordBackup();
         status(`Backup shared. ${describeBackup(backup)}`, 'ok');
         return;
       } catch (e) {
@@ -81,6 +101,7 @@ export async function saveBackup(status) {
     a.download = name;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    recordBackup();
     status(`Backup saved as ${name}. ${describeBackup(backup)}`, 'ok');
   } catch {
     status("Couldn't make the backup. Your browser may be blocking storage.", 'bad');
@@ -115,6 +136,7 @@ export function pickAndRestore(status) {
 
 // The Backup card on the home screen.
 if ($('backup-save')) {
+  showLastBackup();
   const status = (text, kind = 'neutral') => {
     $('backup-status').hidden = !text;
     $('backup-status').className = `status ${kind}`;
