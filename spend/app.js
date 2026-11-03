@@ -13,22 +13,43 @@ function fresh() {
   return { expenses: [], budget: { total: 0, cats: {} }, startDay: 1, custom: [], repeats: [], lastCat: 'food' };
 }
 
+// False when saved data couldn't be read: then nothing is saved over it (see save()).
+let canSave = true;
+
 function load() {
+  let raw;
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    raw = localStorage.getItem(STORAGE_KEY);
+  } catch {
+    canSave = false; // storage blocked; shared/pwa.js explains
+    return fresh();
+  }
+  if (raw == null) return fresh();
+  try {
+    const saved = JSON.parse(raw);
     if (saved && Array.isArray(saved.expenses)) {
       const f = fresh();
       return { ...f, ...saved, budget: { ...f.budget, ...saved.budget } };
     }
-  } catch { /* storage unavailable or corrupt: start fresh */ }
+  } catch { /* unreadable: kept below */ }
+  // Keep the unreadable copy rather than saving an empty month over it.
+  try {
+    localStorage.setItem(`${STORAGE_KEY}-unreadable-${Date.now()}`, raw);
+  } catch {
+    canSave = false;
+  }
   return fresh();
 }
 
 function save() {
+  if (!canSave) {
+    toast('Not saved: this browser is blocking storage.');
+    return;
+  }
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
-    toast('Could not save — your browser is blocking storage.');
+    toast('Could not save. Your phone may be out of space, or the browser is blocking storage.');
   }
 }
 

@@ -2185,3 +2185,20 @@ body:not(.ready) .balance .big, body:not(.ready) .balance .muted:not(:empty) {
 
 /* Pictures still on their way get a soft placeholder instead of a blank gap. */
 .gd-shot img, .tc-face img, .tr-detail img, .tr-thumb img { background: color-mix(in srgb, var(--border) 60%, transparent); }
+
+/* ---- Storage notices (shared/pwa.js) ---------------------------------------------------------- */
+.store-note-wrap { max-width: 560px; margin: 0 auto; padding: 1rem 1rem 0; }
+.store-note { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent, #0f766e); border-radius: 14px; padding: .9rem 1rem; color: var(--text); font-size: .92rem; }
+.hub .store-note { margin: 0 0 1.25rem; }
+.store-note.warn { border-left-color: var(--warn); }
+.store-note.bad { border-left-color: var(--bad); background: var(--bad-bg); }
+.store-note-title { margin: 0 0 .3rem; font-weight: 700; font-size: 1rem; }
+.store-note-body p { margin: 0 0 .4rem; }
+.store-note-body ol { margin: .3rem 0 .4rem; padding-left: 1.25rem; }
+.store-note-body li { margin: .2rem 0; }
+.store-note-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; margin-top: .6rem; }
+.store-note-actions:empty { display: none; }
+.store-note-close { margin-left: auto; }
+.store-note-status { margin: .6rem 0 0; font-size: .88rem; color: var(--muted); }
+.store-note-status.ok { color: var(--ok); }
+.store-note-status.bad { color: var(--bad); }
