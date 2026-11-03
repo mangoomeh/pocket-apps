@@ -3,7 +3,7 @@
 // The file list and VERSION are written by tools/build-sw.js (`npm run sw`); don't edit them by hand.
 
 // <files>
-const VERSION = "a5189f50f0bd";
+const VERSION = "1f6f9b8b591b";
 const FILES = [
   "./",
   "petty-cash/",
@@ -26,6 +26,7 @@ const FILES = [
   "shared/pwa.js",
   "shared/styles.css",
   "shared/ui.js",
+  "shared/version.js",
   "src/backup.js",
   "src/bazi.js",
   "src/bazimatch.js",
@@ -273,6 +274,11 @@ async function cacheFirst(request) {
   if (res.ok) cache.put(request, res.clone());
   return res;
 }
+
+// Pages ask which version is installed for offline use.
+self.addEventListener('message', (event) => {
+  if (event.data === 'version') event.ports[0]?.postMessage(VERSION);
+});
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;

@@ -2207,3 +2207,8 @@ body:not(.ready) .balance .big, body:not(.ready) .balance .muted:not(:empty) {
 .sp-keypad button { height: 2.9rem; border: 0; border-radius: 12px; background: var(--bg); color: var(--text); font: inherit; font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; display: grid; place-items: center; touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
 .sp-keypad button:active { background: var(--border); }
 .sp-amount input[readonly] { border-bottom-color: var(--accent); caret-color: transparent; }
+
+/* ---- Version and updates (shared/pwa.js) ------------------------------------------------------ */
+.app-version { margin: .75rem 0 0; text-align: center; color: var(--muted); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.update-bar { position: fixed; left: 50%; top: calc(.75rem + env(safe-area-inset-top)); transform: translateX(-50%); z-index: 20; display: flex; align-items: center; gap: 1rem; width: max-content; max-width: calc(100% - 2rem); padding: .55rem .6rem .55rem 1rem; border-radius: 12px; background: var(--text); color: var(--bg); box-shadow: 0 6px 20px rgb(0 0 0 / .25); font-size: .92rem; }
+.update-bar button { border: 0; border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; font-weight: 700; padding: .35rem .75rem; cursor: pointer; }

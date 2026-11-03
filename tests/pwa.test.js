@@ -4,13 +4,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { ROOT, APPS, SHARED, withBlock } from '../tools/build-sw.js';
+import { ROOT, APPS, SHARED, withBlock, version, versionModule, VERSION_FILE } from '../tools/build-sw.js';
 
 const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 
 test('sw.js lists every file with an up-to-date version (run `npm run sw` if not)', () => {
   const sw = read('sw.js');
   assert.equal(sw, withBlock(sw));
+  assert.equal(read(VERSION_FILE), versionModule(version()), 'shared/version.js matches');
 });
 
 test('every page has its own manifest, icons, and turns on offline use', () => {

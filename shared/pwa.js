@@ -1,9 +1,40 @@
 // Loaded by every page: turns on offline use and asks the browser to keep saved data.
 // Without persistent storage, Safari can clear a site's data after a week of not opening it.
 
+import { VERSION } from './version.js';
+
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  navigator.serviceWorker.register(new URL('../sw.js', import.meta.url), { scope: new URL('../', import.meta.url).pathname }).catch(() => {});
+  const hadWorker = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register(new URL('../sw.js', import.meta.url), { scope: new URL('../', import.meta.url).pathname })
+    .then((reg) => {
+      // An app left open in the background (common on phones) checks for a new version
+      // whenever it comes back, not just when it's opened afresh.
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+    })
+    .catch(() => {});
+  // A new version took over while this page was open: offer a reload rather than doing it,
+  // so nothing half-typed is lost.
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadWorker) askToReload();
+  });
 }
+
+function askToReload() {
+  if (document.querySelector('.update-bar')) return;
+  const bar = document.createElement('div');
+  bar.className = 'update-bar';
+  bar.setAttribute('role', 'status');
+  bar.innerHTML = '<span>A new version is ready.</span><button type="button">Reload</button>';
+  bar.querySelector('button').addEventListener('click', () => location.reload());
+  document.body.append(bar);
+}
+
+// Elements marked data-version show which version this page is running.
+function showVersion() {
+  for (const el of document.querySelectorAll('[data-version]')) el.textContent = `Version ${VERSION.slice(0, 7)}`;
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showVersion, { once: true });
+else showVersion();
 
 navigator.storage?.persist?.().catch(() => {});
 

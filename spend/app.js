@@ -440,10 +440,12 @@ function openSheet(id = null) {
 
 // Phones type the amount on the keypad in the sheet: the amount box never opens the phone
 // keyboard, so there's no keyboard to hide (hiding a number pad could type a digit).
-const useKeypad = matchMedia('(pointer: coarse)').matches;
+// Any touch screen gets it (some phones report a stylus or mouse as their main pointer). Only
+// phones lock the box: a touch laptop's own keyboard can still type into it.
+const useKeypad = navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse), (any-pointer: coarse)').matches;
 if (useKeypad) {
   const amount = $('f-amount');
-  amount.readOnly = true;
+  amount.readOnly = matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad/i.test(navigator.userAgent);
   amount.inputMode = 'none';
   $('keypad').hidden = false;
   $('keypad').addEventListener('click', (ev) => {
