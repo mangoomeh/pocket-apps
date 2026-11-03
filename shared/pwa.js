@@ -12,11 +12,45 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
     })
     .catch(() => {});
-  // A new version took over while this page was open: offer a reload rather than doing it,
-  // so nothing half-typed is lost.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadWorker) askToReload();
+    if (hadWorker) newVersionArrived().catch(() => {});
   });
+}
+
+// Asks the offline copy in charge which version it holds (null if it can't say: older ones can't).
+function workerVersion(worker = navigator.serviceWorker.controller) {
+  return new Promise((resolve) => {
+    if (!worker) return resolve(null);
+    const channel = new MessageChannel();
+    channel.port1.onmessage = (e) => resolve(e.data);
+    worker.postMessage('version', [channel.port2]);
+    setTimeout(() => resolve(null), 1500);
+  });
+}
+
+// Nothing to lose by reloading: no sheet open and no box being typed in.
+function safeToReload() {
+  const el = document.activeElement;
+  return !document.querySelector('dialog[open]') && !(el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)));
+}
+
+// A new version took over while this page was open. Pages load their files from the network
+// first, so this page may already be on it (say, it was opened while the new version was still
+// downloading): then there's nothing to do. Otherwise a page in the background reloads when
+// it's next shown, and one in use offers a Reload rather than losing anything half-typed.
+let updating = false; // "Check for updates" is fetching a version and will reload by itself
+
+async function newVersionArrived() {
+  if (updating) return;
+  const v = await workerVersion();
+  if (v && v === VERSION) return;
+  if (document.hidden) {
+    document.addEventListener('visibilitychange', function onShow() {
+      if (document.hidden) return;
+      document.removeEventListener('visibilitychange', onShow);
+      if (safeToReload()) location.reload(); else askToReload();
+    });
+  } else askToReload();
 }
 
 function askToReload() {
@@ -33,6 +67,10 @@ function askToReload() {
 function showVersion() {
   for (const el of document.querySelectorAll('[data-version]')) el.textContent = `Version ${VERSION.slice(0, 7)}`;
   document.getElementById('check-update')?.addEventListener('click', checkForUpdate);
+  const updated = (() => { try { const v = sessionStorage.getItem('pocket-updated'); sessionStorage.removeItem('pocket-updated'); return v; } catch { return null; } })();
+  if (updated && updated === VERSION && document.getElementById('update-status')) {
+    document.getElementById('update-status').textContent = 'Updated. You have the latest version.';
+  }
 }
 
 // "Check for updates" on the home page: compares with the version on the site.
@@ -44,13 +82,32 @@ async function checkForUpdate() {
     const latest = (await res.text()).match(/VERSION = "(\w+)"/)?.[1];
     if (!latest) throw new Error();
     if (latest === VERSION) { status.textContent = 'You have the latest version.'; return; }
-    status.textContent = `Version ${latest.slice(0, 7)} is out. Getting it…`;
+    status.textContent = `Version ${latest.slice(0, 7)} is out. Downloading it…`;
     const reg = await navigator.serviceWorker?.getRegistration(new URL('../', import.meta.url).pathname);
-    await reg?.update();
-    // The new version takes over by itself (then the Reload bar shows); without one, just reload.
-    if (!reg) location.reload();
-    else setTimeout(() => { if (!document.querySelector('.update-bar')) askToReload(); }, 8000);
+    if (!reg) { location.reload(); return; } // no offline copy: the page itself is all there is
+    updating = true;
+    await reg.update();
+    const incoming = reg.installing || reg.waiting;
+    if (!incoming) {
+      // The site can take a few minutes to hand out a new version everywhere.
+      if ((await workerVersion(reg.active)) === latest) { location.reload(); return; }
+      updating = false;
+      status.textContent = `Version ${latest.slice(0, 7)} isn’t ready to download yet. Try again in a few minutes.`;
+      return;
+    }
+    // Wait until it's fully saved for offline use and in charge, then reload into it: you
+    // asked for it, so no Reload button to tap.
+    await new Promise((resolve, reject) => {
+      if (incoming.state === 'activated') return resolve();
+      incoming.addEventListener('statechange', () => {
+        if (incoming.state === 'activated') resolve();
+        if (incoming.state === 'redundant') reject(new Error('install failed'));
+      });
+    });
+    try { sessionStorage.setItem('pocket-updated', latest); } catch { /* the message just won't show */ }
+    location.reload();
   } catch {
+    updating = false;
     status.textContent = 'Couldn’t check. Are you online?';
   }
 }

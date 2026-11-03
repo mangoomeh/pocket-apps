@@ -7,9 +7,20 @@ Live at https://mangoomeh.github.io/pocket-apps/
   restaurant). A service worker (`sw.js`) keeps a copy of every page and file; online, pages still come fresh from the
   network.
 - **Add to Home Screen:** each app has its own icon and opens straight into that app, full screen.
-- **Your data stays on your phone,** and the browser is asked to keep it. **Backup** on the home screen saves
-  everything (including receipt photos and the floor plan) to one file you can keep in Files, iCloud Drive or
-  Google Drive, and restores it on a new phone.
+- **Updates:** the home page footer shows the version you're on, and **Check for updates** fetches a newer one and
+  reloads into it once it's fully downloaded. An app left open in the background checks when you come back to it,
+  and reloads by itself when you return to it, or offers a **Reload** button if you're in the middle of something.
+- **No half-drawn pages:** each app shows a loading skeleton until it has drawn itself (or for 6 seconds at most).
+- **Your data stays on your phone.** **Backup** on the home screen saves everything (including receipt photos and
+  the floor plan) to one file for Files, iCloud Drive or Google Drive, and restores it on a new phone. To keep that
+  data safe:
+  - The home page shows when the last backup was made, and each app reminds you to make one after two weeks of use
+    without a backup, or a month after the last (with a one-tap backup and "Later").
+  - On iPhone, Safari deletes a site's data after 7 days unused, and a Home Screen app keeps its data apart from
+    Safari, so it starts empty. In Safari the apps explain this, with a backup button and the steps to move to the
+    Home Screen; a new Home Screen app offers to restore a backup.
+  - Browsers that block storage (Private Browsing, Block All Cookies, some in-app browsers) get a clear warning.
+  - Saved data an app can't read is copied aside rather than saved over (`shared/store.js`).
 
 ## Apps
 
@@ -141,7 +152,8 @@ Keeps track of every job you apply for, what's next for each, and how the search
 Tracks what you spend, by category, against a monthly budget.
 
 - **Add an expense:** amount, category (10 built in, plus your own), an optional note and the date. The last
-  category you used is picked for you.
+  category you used is picked for you. On phones, amounts (and budgets) are typed on a keypad in the app, so the
+  phone keyboard never opens for them.
 - **Monthly budget:** set how much you want to spend in a month. The Month tab shows what's left, a bar with a
   marker for how much of the month has gone, and how much you can spend each day to stay in budget. It warns when
   you're spending faster than planned and on course to go over, and says when you're over.
@@ -420,24 +432,37 @@ npm run sw       # updates the offline file list in sw.js; run after adding or c
 npm run icons    # redraws the icons and manifests (Python 3 + Pillow + Noto Color Emoji); run after adding an app
 ```
 
-The tests fail if `sw.js` is out of date, so a forgotten `npm run sw` stops the deploy rather than shipping an old
-offline copy.
+`npm run sw` also writes `shared/version.js`: the version is a fingerprint of every file, so it changes whenever
+anything does. The tests fail if `sw.js` or `version.js` is out of date, so a forgotten `npm run sw` stops the deploy
+rather than shipping an old offline copy.
 
 Every push to `main` runs the tests and publishes to GitHub Pages (`.github/workflows/pages.yml`).
 
 ## Layout
 
-- `index.html`: the home screen with a tile for each app, and Backup
-- `sw.js`, `shared/pwa.js`: offline use (every page loads `pwa.js`, which registers the service worker)
+- `index.html`: the home screen with a tile for each app, Backup, and the version footer
+- `sw.js`: the service worker (offline copy, network first; answers which version it holds)
+- `shared/pwa.js`: loaded by every page. Registers the service worker and handles updates (Check for updates, the
+  Reload bar), ends the loading skeleton (`holdReady()` lets an app keep it while it opens a shared link), and shows
+  the storage notices and backup reminders
+- `shared/version.js`: the version, written by `npm run sw`
+- `shared/store.js`: `keepUnreadable()`, which each app calls before reading its saved data
+- `shared/backup.js`: saving and restoring backups, used by the home page and the notices
 - `manifest.webmanifest` in each folder, and `icons/`: what a phone uses when an app is added to the home screen
-- `shared/styles.css`: shared styles, including the Sushiro theme
-- `shared/ui.js`: helpers every app uses (`$`, `esc`, `toast`, `switchTab`); `shared/backup.js`: the Backup card
+- `shared/styles.css`: every app's styles and themes (Sushiro, Windows 95 for Petty Cash, and so on)
+- `shared/ui.js`: helpers every app uses (`$`, `esc`, `toast`, `switchTab`)
 - `petty-cash/`, `sushiro/`, `split/`, `trip/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `godigital/`, `tarot/`, `jobs/`, `lists/`, `spend/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
 - `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `jobs.js`, `interview.js`, `lists.js`, `spend.js`, `compass.js`), with all money in integer cents
 - `tests/`: unit tests for `src/`, plus checks that the offline and install files are complete
 - `tools/`: `build-sw.js` (offline file list) and `build-pwa.py` (icons and manifests)
 
-To add an app: create a folder with an `index.html` (copy the `<head>` of another app, which links its manifest,
-icon and `pwa.js`), add a tile to the root `index.html`, add the folder to `APPS` in `tools/build-sw.js` and
-`tools/build-pwa.py` and to the `cp` line in the Pages workflow, add its storage key to `STORAGE_KEYS` in
-`src/backup.js`, then run `npm run icons` and `npm run sw`.
+To add an app:
+
+1. Create a folder with an `index.html`. Copy another app's `<head>` (manifest, icon, `pwa.js`), its
+   `<body data-saves="<storage key>">` (for the notices and reminders) and the `.boot` skeleton before `<main>`.
+2. In its script, call `keepUnreadable(STORAGE_KEY, …)` before reading saved data.
+3. Add a tile to the root `index.html`.
+4. Add the folder to `APPS` in `tools/build-sw.js` and `tools/build-pwa.py`, to the `cp` line in the Pages
+   workflow, and to the folder lists in `tests/backup.test.js`.
+5. Add its storage key to `STORAGE_KEYS` in `src/backup.js`.
+6. Run `npm run icons` and `npm run sw`.
