@@ -32,6 +32,27 @@ function askToReload() {
 // Elements marked data-version show which version this page is running.
 function showVersion() {
   for (const el of document.querySelectorAll('[data-version]')) el.textContent = `Version ${VERSION.slice(0, 7)}`;
+  document.getElementById('check-update')?.addEventListener('click', checkForUpdate);
+}
+
+// "Check for updates" on the home page: compares with the version on the site.
+async function checkForUpdate() {
+  const status = document.getElementById('update-status');
+  status.textContent = 'Checking…';
+  try {
+    const res = await fetch(new URL('./version.js', import.meta.url), { cache: 'no-store' });
+    const latest = (await res.text()).match(/VERSION = "(\w+)"/)?.[1];
+    if (!latest) throw new Error();
+    if (latest === VERSION) { status.textContent = 'You have the latest version.'; return; }
+    status.textContent = `Version ${latest.slice(0, 7)} is out. Getting it…`;
+    const reg = await navigator.serviceWorker?.getRegistration(new URL('../', import.meta.url).pathname);
+    await reg?.update();
+    // The new version takes over by itself (then the Reload bar shows); without one, just reload.
+    if (!reg) location.reload();
+    else setTimeout(() => { if (!document.querySelector('.update-bar')) askToReload(); }, 8000);
+  } catch {
+    status.textContent = 'Couldn’t check. Are you online?';
+  }
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showVersion, { once: true });
 else showVersion();

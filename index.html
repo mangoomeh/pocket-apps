@@ -146,8 +146,11 @@
       <input type="file" id="backup-file" accept="application/json,.json" hidden>
       <p class="status" id="backup-status" role="status" aria-live="polite" hidden></p>
     </div>
-    <p class="app-version" data-version></p>
   </main>
+  <footer class="hub-foot">
+    <span data-version></span> · <button type="button" class="text-btn" id="check-update">Check for updates</button>
+    <p class="hub-foot-status" id="update-status" role="status" aria-live="polite"></p>
+  </footer>
   <script type="module" src="shared/backup.js"></script>
 </body>
 </html>
