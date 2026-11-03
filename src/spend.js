@@ -178,3 +178,18 @@ export function toCsv(expenses, custom = []) {
   ].map((v) => q(String(v))).join(','));
   return ['Date,Amount,Category,Note,Repeats', ...rows].join('\r\n');
 }
+
+// ---- Amount keypad -------------------------------------------------------------------------------
+
+// The amount after pressing a keypad key ('0'-'9', '.', or 'back'): one decimal point, at most
+// two decimal places and nine whole digits, and no leading zeros ("05" becomes "5").
+export function keypadInput(value, key) {
+  const v = String(value ?? '');
+  if (key === 'back') return v.slice(0, -1);
+  if (key === '.') return v.includes('.') ? v : `${v || '0'}.`;
+  if (!/^\d$/.test(key)) return v;
+  const [whole, frac] = v.split('.');
+  if (frac !== undefined) return frac.length >= 2 ? v : v + key;
+  if (whole === '0') return key;
+  return whole.length >= 9 ? v : v + key;
+}

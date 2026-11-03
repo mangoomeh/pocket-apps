@@ -114,8 +114,15 @@
       </div>
       <div class="jb-sheet-body">
         <label class="sp-amount"><span>$</span><input id="f-amount" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-label="Amount"></label>
+        <!-- On phones the amount is typed here, so the phone keyboard never opens for it. -->
+        <div class="sp-keypad" id="keypad" role="group" aria-label="Amount keypad" hidden>
+          <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
+          <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
+          <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
+          <button type="button" data-key=".">.</button><button type="button" data-key="0">0</button><button type="button" data-key="back" aria-label="Delete"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M9 6h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-6-6zM12.5 9.5l5 5M17.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
         <div class="sp-cat-grid" id="f-cats" role="radiogroup" aria-label="Category"></div>
-        <label class="field"><span>Note <small>(optional)</small></span><input id="f-note" autocomplete="off" maxlength="80" placeholder="e.g. Lunch with Mei"></label>
+        <label class="field"><span>Note <small>(optional)</small></span><input id="f-note" enterkeyhint="done" autocomplete="off" maxlength="80" placeholder="e.g. Lunch with Mei"></label>
         <label class="field"><span>Date</span><input id="f-date" type="date"></label>
         <label class="sp-check"><input type="checkbox" id="f-repeat"> <span>Repeats every month <small id="repeat-hint"></small></span></label>
         <p class="status bad" id="form-error" hidden></p>

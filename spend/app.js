@@ -1,7 +1,7 @@
 import { newId } from '../src/sync.js';
 import {
   allCategories, categoryOf, parseAmount, formatCents, localIso, addDays, periodOf, shiftPeriod, periodLabel, shortDate, dayLabel,
-  inPeriod, total, monthSummary, byCategory, cumulative, groupByDay, matches, applyRepeats, toCsv,
+  inPeriod, total, monthSummary, byCategory, cumulative, groupByDay, matches, applyRepeats, toCsv, keypadInput,
 } from '../src/spend.js';
 import { $, esc, switchTab, toast } from '../shared/ui.js';
 
@@ -435,8 +435,29 @@ function openSheet(id = null) {
   renderCatGrid();
   repeatHint();
   $('sheet').showModal();
-  if (!e) $('f-amount').focus();
+  if (!e && !useKeypad) $('f-amount').focus();
 }
+
+// Phones type the amount on the keypad in the sheet: the amount box never opens the phone
+// keyboard, so there's no keyboard to hide (hiding a number pad could type a digit).
+const useKeypad = matchMedia('(pointer: coarse)').matches;
+if (useKeypad) {
+  const amount = $('f-amount');
+  amount.readOnly = true;
+  amount.inputMode = 'none';
+  $('keypad').hidden = false;
+  $('keypad').addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-key]');
+    if (!b) return;
+    if (document.activeElement !== document.body) document.activeElement?.blur?.(); // closes the keyboard if the note was open
+    amount.value = keypadInput(amount.value, b.dataset.key);
+    $('form-error').hidden = true;
+  });
+}
+// Done on the keyboard closes it, rather than saving before a category is picked.
+$('f-note').addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter' && useKeypad) { ev.preventDefault(); ev.target.blur(); }
+});
 
 $('add').addEventListener('click', () => openSheet());
 $('cancel').addEventListener('click', () => $('sheet').close());

@@ -85,3 +85,17 @@ test('CSV export', () => {
   const csv = toCsv([{ ...ex('2026-11-02', 1250, 'food', 'Lunch, with "Ann"'), repeat: '' }, { ...ex('2026-11-01', 5, 'bills', ''), repeat: 'r' }]);
   assert.equal(csv, 'Date,Amount,Category,Note,Repeats\r\n2026-11-01,0.05,Bills,,Monthly\r\n2026-11-02,12.50,Food,"Lunch, with ""Ann""",');
 });
+
+test('the amount keypad', async () => {
+  const { keypadInput } = await import('../src/spend.js');
+  const press = (keys, start = '') => keys.reduce(keypadInput, start);
+  assert.equal(press(['1', '2', '.', '5', '0']), '12.50');
+  assert.equal(press(['.', '5']), '0.5', 'a point first means 0.');
+  assert.equal(press(['0', '0', '7']), '7', 'no leading zeros');
+  assert.equal(press(['0', '.', '0', '5']), '0.05');
+  assert.equal(press(['1', '.', '.', '2', '3', '4']), '1.23', 'one point, two decimals');
+  assert.equal(press(['1', '2', 'back', 'back', 'back']), '');
+  assert.equal(press(['9'], '123456789'), '123456789', 'nine whole digits at most');
+  assert.equal(press(['x'], '4'), '4');
+  assert.equal(parseAmount(press(['.', '5'])), 50);
+});

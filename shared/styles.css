@@ -2202,3 +2202,8 @@ body:not(.ready) .balance .big, body:not(.ready) .balance .muted:not(:empty) {
 .store-note-status { margin: .6rem 0 0; font-size: .88rem; color: var(--muted); }
 .store-note-status.ok { color: var(--ok); }
 .store-note-status.bad { color: var(--bad); }
+.sp-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; margin: .5rem 0 .25rem; }
+.sp-keypad[hidden] { display: none; }
+.sp-keypad button { height: 2.9rem; border: 0; border-radius: 12px; background: var(--bg); color: var(--text); font: inherit; font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; display: grid; place-items: center; touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+.sp-keypad button:active { background: var(--border); }
+.sp-amount input[readonly] { border-bottom-color: var(--accent); caret-color: transparent; }
