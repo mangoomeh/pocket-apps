@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import { parseAmount } from '../src/cash.js';
 import {
   newId, sharesOf, exactShares, expenseProblem, balances, settleUp, totalSpent, mergeGroups, encodeGroup, decodeGroup,
@@ -30,6 +31,7 @@ function save() {
   }
 }
 
+keepUnreadable(STORAGE_KEY, (s) => Array.isArray(s.groups));
 const state = load();
 let shared = null; // the group from a read-only #s= link, while one is open
 const group = () => state.groups.find((g) => g.id === state.current) || null;

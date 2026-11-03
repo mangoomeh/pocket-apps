@@ -284,7 +284,7 @@
           <summary data-zh="和手机自带罗盘读数不同？">Different from your phone's compass app?</summary>
           <p class="hint" data-zh="先确认两者用同样的拿法（平放、顶部朝同一方向），并都画过“8”字校准。若仍有固定差距，把手机罗盘的读数输入这里，之后的读数会自动对齐。">First check both are held the same way (flat, top pointing the same direction) and both are calibrated with a figure 8. If there's still a steady gap, hold the phone still, type in what your compass app says, and this compass will match it from then on.</p>
           <div class="fs-ctl">
-            <input id="offset-input" type="number" inputmode="decimal" min="0" max="360" step="0.5" placeholder="e.g. 182" data-zh-placeholder="例如：182">
+            <input id="offset-input" aria-label="Offset in degrees" type="number" inputmode="decimal" min="0" max="360" step="0.5" placeholder="e.g. 182" data-zh-placeholder="例如：182">
             <button class="secondary small" type="button" id="offset-set" data-zh="对齐">Match it</button>
             <button class="secondary small" type="button" id="offset-reset" data-zh="取消调整">Undo</button>
           </div>

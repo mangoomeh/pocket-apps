@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import { trainBigrams, nextWordOdds, pickWord, trainFilter, scoreMessage, roughTokens } from '../src/learnai.js';
 import * as EN from './lessons.js';
 import * as ZH from './lessons-zh.js';
@@ -13,6 +14,7 @@ function load() {
   } catch { /* ignore */ }
   return { done: {}, lang: /^zh\b/i.test(navigator.language || '') ? 'zh' : 'en' };
 }
+keepUnreadable(STORAGE_KEY, (s) => !!s.done);
 const state = load();
 const persist = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ } };
 

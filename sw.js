@@ -3,7 +3,7 @@
 // The file list and VERSION are written by tools/build-sw.js (`npm run sw`); don't edit them by hand.
 
 // <files>
-const VERSION = "e6b550293c85";
+const VERSION = "5224366c523d";
 const FILES = [
   "./",
   "petty-cash/",
@@ -24,6 +24,7 @@ const FILES = [
   "manifest.webmanifest",
   "shared/backup.js",
   "shared/pwa.js",
+  "shared/store.js",
   "shared/styles.css",
   "shared/ui.js",
   "shared/version.js",

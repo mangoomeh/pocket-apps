@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import { APPS, LANGS, findLesson, renderScreen, say } from '../src/godigital.js';
 
 const STORAGE_KEY = 'godigital-v1';
@@ -12,6 +13,7 @@ function load() {
   } catch { /* ignore */ }
   return { done: {}, lang, big: false, autoRead: false };
 }
+keepUnreadable(STORAGE_KEY, (s) => !!s.done);
 const state = load();
 const persist = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ } };
 

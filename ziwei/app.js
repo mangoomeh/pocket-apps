@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import { STEMS, BRANCHES, computeChart, parseBirth } from '../src/bazi.js';
 import { lunarToSolar, solarToLunar, lunarYearMonths, lunarMonthName, lunarDayName } from '../src/lunar.js';
 import { CITIES, CITY_ZH, cityOf, placeFor } from '../src/places.js';
@@ -21,6 +22,7 @@ function load() {
   } catch { /* storage unavailable or corrupt: start fresh */ }
   return defaults;
 }
+keepUnreadable(STORAGE_KEY, (s) => !!s.form);
 const state = load();
 const persist = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ } };
 const lang = () => (state.lang === 'zh' ? 'zh' : 'en');

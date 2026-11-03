@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import { parseAmount, formatCents } from '../src/cash.js';
 import {
   DEFAULT_PLATES, DEFAULT_RATES, billLines, computeBill, parsePercent, monthSummary,
@@ -39,6 +40,7 @@ function save() {
   }
 }
 
+keepUnreadable(STORAGE_KEY, (s) => Array.isArray(s.plates));
 const state = load();
 
 const pct = (bp) => `${bp / 100}%`;

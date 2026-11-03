@@ -20,7 +20,8 @@ export function formatAmount(cents, currency = 'SGD') {
   try {
     return new Intl.NumberFormat('en-SG', { style: 'currency', currency, currencyDisplay: 'code' }).format(cents / 100).replace(/\u00a0/g, ' ');
   } catch {
-    return `${currency} ${(cents / 100).toFixed(2)}`;
+    // Never echo an unknown code: it may have come from a link.
+    return `${String(currency).replace(/[^A-Z]/g, '').slice(0, 3)} ${(cents / 100).toFixed(2)}`;
   }
 }
 
@@ -298,9 +299,21 @@ export async function decodeGroup(text) {
     return null;
   }
   if (!g || g.v !== 1 || !g.id || !Array.isArray(g.members) || !Array.isArray(g.expenses)) return null;
-  const group = { ...head(g), name: String(g.name || 'Group'), updatedAt: g.updatedAt || 0, members: g.members, expenses: g.expenses };
+  const group = { ...head(g), name: String(g.name || 'Group'), updatedAt: g.updatedAt || 0, members: g.members.map(cleanMember), expenses: g.expenses.map(cleanExpense) };
   if (!CURRENCIES.includes(group.currency)) delete group.currency;
   return group;
+}
+
+// A link can carry anything, so text fields become text and currencies must be known ones:
+// an unknown currency would otherwise be shown as-is, and could carry markup.
+function cleanMember(m) {
+  return { ...m, id: String(m?.id ?? ''), name: String(m?.name ?? '') };
+}
+
+function cleanExpense(e) {
+  const out = { ...e, id: String(e?.id ?? ''), desc: String(e?.desc ?? ''), cents: Number.isFinite(e?.cents) ? Math.round(e.cents) : 0 };
+  if (!CURRENCIES.includes(out.currency) || !(Number(out.rate) > 0)) { delete out.currency; delete out.rate; } else out.rate = Number(out.rate);
+  return out;
 }
 
 // ---- Read-only summary links ----------------------------------------------------------

@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import { newId, encodeData, decodeData } from '../src/sync.js';
 import {
   TEMPLATES, EMOJIS, template, isReusable, newList, addItems, toggleItem, editItem, removeItem, restoreItem, todo, done,
@@ -30,6 +31,7 @@ function save() {
   }
 }
 
+keepUnreadable(STORAGE_KEY, (s) => Array.isArray(s.lists));
 const state = load();
 const byId = (id) => state.lists.find((l) => l.id === id);
 let current = null; // the open list

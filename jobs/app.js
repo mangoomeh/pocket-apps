@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import { newId } from '../src/sync.js';
 import {
   STAGES, CLOSED, stage, isActive, newJob, moveStage, needsFollowUp, upcoming, relDay, stats, matches, sortJobs, toCsv,
@@ -35,6 +36,7 @@ function save() {
   }
 }
 
+keepUnreadable(STORAGE_KEY, (s) => Array.isArray(s.jobs));
 const state = load();
 const today = () => localIso();
 let query = '';

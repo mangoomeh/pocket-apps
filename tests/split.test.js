@@ -275,3 +275,21 @@ test('shares are kept exact and each total is rounded once, whatever the order',
   assert.deepEqual(fwd, rev);
   assert.equal(Object.values(fwd).reduce((s, c) => s + c, 0), 0);
 });
+
+test('an editable link cannot smuggle markup in through a currency or other fields', async () => {
+  const { encodeData } = await import('../src/sync.js');
+  const { decodeGroup, formatAmount } = await import('../src/split.js');
+  const evil = '<img src=x onerror=alert(1)>';
+  const text = await encodeData({ v: 1, id: 'g', name: 'Trip', updatedAt: 1, members: [{ id: 'a', name: 'Ann' }, { id: 'b', name: 42 }],
+    expenses: [
+      { id: 'e1', kind: 'expense', desc: 'Pizza', cents: 3000, paidBy: 'a', split: { type: 'equal', among: ['a', 'b'] }, at: 1, updatedAt: 1, currency: evil, rate: 1 },
+      { id: 'e2', kind: 'expense', desc: 'Taxi', cents: '12', paidBy: 'a', split: { type: 'equal', among: ['a', 'b'] }, at: 1, updatedAt: 1, currency: 'THB', rate: 0.04 },
+    ] });
+  const g = await decodeGroup(text);
+  assert.equal(g.expenses[0].currency, undefined, 'unknown currency dropped');
+  assert.equal(g.expenses[0].rate, undefined);
+  assert.equal(g.expenses[1].currency, 'THB', 'known currency kept');
+  assert.equal(g.expenses[1].cents, 0, 'amounts must be numbers');
+  assert.equal(g.members[1].name, '42');
+  assert.doesNotMatch(formatAmount(1234, evil), /[<>=]/, 'the formatter never echoes markup');
+});

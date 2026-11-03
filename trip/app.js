@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import { newId } from '../src/sync.js';
 import {
   tripDays, tripStatus, itemsOn, unscheduled, mapsUrl, formatDay, itineraryText, itineraryIcs, localIso, isIsoDate, nights,
@@ -33,6 +34,7 @@ function save() {
   }
 }
 
+keepUnreadable(STORAGE_KEY, (s) => Array.isArray(s.trips));
 const state = load();
 const trip = () => state.trips.find((t) => t.id === state.current) || null;
 const touch = (record) => { record.updatedAt = Date.now(); return record; };

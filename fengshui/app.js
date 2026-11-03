@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import { holdReady } from '../shared/pwa.js';
 import {
   PALACES, PALACES_EN, PALACES_ZH, TRIGRAMS, TRIGRAM_SYMBOLS, MOUNTAINS, MOUNTAIN_PINYIN, STARS, mountainOf, mountainLabel,
@@ -31,6 +32,7 @@ function load() {
   } catch { /* ignore */ }
   return defaults;
 }
+keepUnreadable(STORAGE_KEY, (s) => !!s.home);
 const state = load();
 const persist = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ } };
 const lang = () => (state.lang === 'zh' ? 'zh' : 'en');

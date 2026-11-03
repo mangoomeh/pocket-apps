@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import {
   STEMS, STEM_PINYIN, BRANCHES, BRANCH_PINYIN, ANIMALS, ANIMALS_ZH, ELEMENTS, INTERACTION_NAMES, TEN_GODS, LIFE_STAGES, LIFE_STAGES_EN,
   NAYIN, NAYIN_EN, HIDDEN_STEMS, BRANCH_ELEMENT, stemElement, isYang, computeChart, annualPillar, parseBirth,
@@ -51,6 +52,7 @@ function load() {
   } catch { /* storage unavailable or corrupt: start fresh */ }
   return defaults;
 }
+keepUnreadable(STORAGE_KEY, (s) => !!s.form);
 const state = load();
 const persist = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ } };
 let chart = null;

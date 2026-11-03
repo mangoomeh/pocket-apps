@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import {
   DENOMINATIONS, emptyCounts, totalCents, parseAmount, formatCents,
   checkTransaction, applyDelta, lowDenominations, historyCsv, periodRange, spendStats,
@@ -24,6 +25,7 @@ function save() {
   }
 }
 
+keepUnreadable(STORAGE_KEY, (s) => !!s.stash);
 const state = load();
 
 // ---- Draft (unsaved) state --------------------------------------------------

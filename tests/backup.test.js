@@ -45,3 +45,26 @@ test('every app\'s storage key is backed up', async () => {
   }
   for (const k of used) assert.ok(STORAGE_KEYS.includes(k) || CACHE_KEYS.includes(k), `${k} is missing from STORAGE_KEYS`);
 });
+
+test('saved data an app cannot read is copied aside, not lost', async () => {
+  const { keepUnreadable } = await import('../shared/store.js');
+  const mem = (init) => { const m = new Map(Object.entries(init)); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, v), m }; };
+  const ok = mem({ 'x-v1': '{"items":[]}' });
+  assert.equal(keepUnreadable('x-v1', (s) => Array.isArray(s.items), ok, 5), false);
+  assert.equal(ok.m.size, 1);
+  const broken = mem({ 'x-v1': '{oops' });
+  assert.equal(keepUnreadable('x-v1', () => true, broken, 5), true);
+  assert.equal(broken.m.get('x-v1-unreadable-5'), '{oops');
+  const wrongShape = mem({ 'x-v1': '{"old":1}' });
+  assert.equal(keepUnreadable('x-v1', (s) => Array.isArray(s.items), wrongShape, 7), true);
+  assert.equal(keepUnreadable('x-v1', () => true, mem({}), 7), false, 'nothing saved yet');
+  assert.equal(keepUnreadable('x-v1', () => true, { getItem() { throw new Error('blocked'); } }), false);
+});
+
+test('every app protects its saved data before reading it', async () => {
+  const { readFileSync } = await import('node:fs');
+  for (const dir of ['petty-cash', 'sushiro', 'split', 'trip', 'calc84', 'wallets', 'bazi', 'ziwei', 'fengshui', 'learnai', 'godigital', 'tarot', 'jobs', 'lists']) {
+    const src = readFileSync(new URL(`../${dir}/app.js`, import.meta.url), 'utf8');
+    assert.match(src, /keepUnreadable\(STORAGE_KEY, [^\n]+\);\nconst state = load\(\);/, dir);
+  }
+});

@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import { DECK, SUITS, SPREADS, cardById, spreadById, draw, dailyCard, overview } from '../src/tarot.js';
 
 const STORAGE_KEY = 'tarot-v1';
@@ -12,6 +13,7 @@ function load() {
   } catch { /* ignore */ }
   return defaults;
 }
+keepUnreadable(STORAGE_KEY, (s) => Array.isArray(s.journal));
 const state = load();
 const persist = () => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ } };
 

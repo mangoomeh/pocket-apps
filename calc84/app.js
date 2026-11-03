@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import {
   run, compileFunction, formatNumber, toFraction, derivative, integrate, findZero, findExtremum,
   CalcError, ANS_STARTERS, Y_TOKENS, FRAC_OPEN, FRAC_MID, FRAC_CLOSE, isFracMark,
@@ -40,6 +41,7 @@ function load() {
   return defaults();
 }
 
+keepUnreadable(STORAGE_KEY, (s) => !!s.yeq);
 const state = load();
 let saveTimer;
 function save() {

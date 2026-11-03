@@ -1,3 +1,4 @@
+import { keepUnreadable } from '../shared/store.js';
 import {
   CHAINS, makeRpc, isAddress, normAddress, tokenInfo, earlyBuyers, groupInToken, walletFlows, formatAmount, percentOf,
 } from '../src/onchain.js';
@@ -21,6 +22,7 @@ function load() {
   } catch { /* storage unavailable: start fresh */ }
   return defaults;
 }
+keepUnreadable(STORAGE_KEY, () => true);
 const state = load();
 function save() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* not remembered */ }

@@ -46,8 +46,8 @@
         <p class="hint">Ramen, drinks, desserts or any dish not on a plate colour.</p>
         <ul class="specials" id="special-list"></ul>
         <form class="inline-form" id="special-form">
-          <input class="name" id="special-name" placeholder="Name (optional)" autocomplete="off">
-          <input class="price" id="special-price" inputmode="decimal" placeholder="$0.00" autocomplete="off" required>
+          <input class="name" id="special-name" aria-label="Special plate name" placeholder="Name (optional)" autocomplete="off">
+          <input class="price" id="special-price" aria-label="Special plate price" inputmode="decimal" placeholder="$0.00" autocomplete="off" required>
           <button class="primary small" type="submit">Add</button>
         </form>
       </div>
@@ -75,7 +75,7 @@
             <input type="file" id="receipt-file" accept="image/*" hidden>
             <div id="paste-box" hidden>
               <p class="hint">On iPhone, long-press the receipt text in Camera or Photos (Live Text), or use Google Lens on Android, then copy and paste it here.</p>
-              <textarea id="paste-text" rows="5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Paste receipt text"></textarea>
+              <textarea id="paste-text" aria-label="Receipt text" rows="5" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Paste receipt text"></textarea>
               <button class="secondary" id="paste-read" type="button">Read text</button>
             </div>
           </div>
