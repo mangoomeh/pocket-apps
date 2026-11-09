@@ -401,6 +401,21 @@ switch.
 - Grab and FairPrice are still simplified drawings, until there are real screenshots for them. The app says it isn't
   made by or linked to Grab, FairPrice or DBS.
 
+### 🖐️ Palm Reading (`palm/`)
+
+A guided reading of your own palm. Phones can't reliably pick out palm lines from a photo, so instead you look at
+your hand and choose what you see.
+
+- **Read:** 11 short steps: which hand, palm shape and finger length (which give your hand type: Earth, Air, Water
+  or Fire), then the heart, head, life, fate and sun lines. Each step shows a drawing of a hand with that line
+  highlighted, a tip on how to spot it, and a small drawing of each choice; any step can be skipped. An optional
+  photo of your palm stays on screen to compare with (it isn't saved).
+- **The reading:** your hand type and character, love and feelings, mind, energy and life path, with keywords.
+  Save it, share it as text, change answers or read the other hand.
+- **Learn:** the four hand types and every line with what each variation traditionally means.
+- For fun and reflection, from traditional palmistry. Logic and drawings in `src/palm.js`; kept on the phone and
+  included in backups.
+
 ### 🌙 Tarot (`tarot/`)
 
 Tarot readings with the full 78-card Rider–Waite–Smith deck, in Pamela Colman Smith's original 1909 art (public
@@ -451,8 +466,8 @@ Every push to `main` runs the tests and publishes to GitHub Pages (`.github/work
 - `manifest.webmanifest` in each folder, and `icons/`: what a phone uses when an app is added to the home screen
 - `shared/styles.css`: every app's styles and themes (Sushiro, Windows 95 for Petty Cash, and so on)
 - `shared/ui.js`: helpers every app uses (`$`, `esc`, `toast`, `switchTab`)
-- `petty-cash/`, `sushiro/`, `split/`, `trip/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `godigital/`, `tarot/`, `jobs/`, `lists/`, `spend/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
-- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `jobs.js`, `interview.js`, `lists.js`, `spend.js`, `compass.js`), with all money in integer cents
+- `petty-cash/`, `sushiro/`, `split/`, `trip/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `godigital/`, `tarot/`, `jobs/`, `lists/`, `spend/`, `palm/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
+- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `jobs.js`, `interview.js`, `lists.js`, `spend.js`, `palm.js`, `compass.js`), with all money in integer cents
 - `tests/`: unit tests for `src/`, plus checks that the offline and install files are complete
 - `tools/`: `build-sw.js` (offline file list) and `build-pwa.py` (icons and manifests)
 

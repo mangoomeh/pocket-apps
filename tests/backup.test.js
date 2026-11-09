@@ -36,7 +36,7 @@ test('other files are refused with a clear message', () => {
 test('every app\'s storage key is backed up', async () => {
   const { readFileSync, readdirSync } = await import('node:fs');
   const used = new Set();
-  for (const dir of ['petty-cash', 'sushiro', 'split', 'trip', 'calc84', 'wallets', 'bazi', 'ziwei', 'fengshui', 'learnai', 'godigital', 'tarot', 'jobs', 'lists', 'spend']) {
+  for (const dir of ['petty-cash', 'sushiro', 'split', 'trip', 'calc84', 'wallets', 'bazi', 'ziwei', 'fengshui', 'learnai', 'godigital', 'tarot', 'jobs', 'lists', 'spend', 'palm']) {
     for (const f of readdirSync(new URL(`../${dir}/`, import.meta.url))) {
       if (!/\.(js|html)$/.test(f)) continue;
       const text = readFileSync(new URL(`../${dir}/${f}`, import.meta.url), 'utf8');
@@ -63,7 +63,7 @@ test('saved data an app cannot read is copied aside, not lost', async () => {
 
 test('every app protects its saved data before reading it', async () => {
   const { readFileSync } = await import('node:fs');
-  for (const dir of ['petty-cash', 'sushiro', 'split', 'trip', 'calc84', 'wallets', 'bazi', 'ziwei', 'fengshui', 'learnai', 'godigital', 'tarot', 'jobs', 'lists']) {
+  for (const dir of ['petty-cash', 'sushiro', 'split', 'trip', 'calc84', 'wallets', 'bazi', 'ziwei', 'fengshui', 'learnai', 'godigital', 'tarot', 'jobs', 'lists', 'palm']) {
     const src = readFileSync(new URL(`../${dir}/app.js`, import.meta.url), 'utf8');
     assert.match(src, /keepUnreadable\(STORAGE_KEY, [^\n]+\);\nconst state = load\(\);/, dir);
   }

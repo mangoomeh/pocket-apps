@@ -30,6 +30,7 @@ APPS = [
     ('jobs', 'Job Tracker', 'Jobs', '💼', '#c2410c'),
     ('lists', 'Lists', 'Lists', '📝', '#15803d'),
     ('spend', 'Spending', 'Spending', '👛', '#be123c'),
+    ('palm', 'Palm Reading', 'Palm', '🖐️', '#92400e'),
 ]
 
 
