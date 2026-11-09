@@ -1,0 +1,225 @@
+{
+ "uuid": "13887c18d91bc6034bc8c351cf67ddec",
+ "sourceCode": "Employer Portal",
+ "title": "Software Engineer",
+ "minimumYearsExperience": 1,
+ "shiftPattern": null,
+ "schemes": [],
+ "skills": [
+  {
+   "skill": "Software Troubleshooting",
+   "uuid": "13d58bb892133c846e7b2ccde2a541c3",
+   "confidence": null,
+   "isKeySkill": false
+  },
+  {
+   "skill": "Improve Operational Performance",
+   "uuid": "1676449e21a0a5fd3423561eedbb29f0",
+   "confidence": null,
+   "isKeySkill": false
+  },
+  {
+   "skill": "Efficient",
+   "uuid": "54f7b01b04b120ae34714e0b6b8a0045",
+   "confidence": null,
+   "isKeySkill": false
+  },
+  {
+   "skill": "Software Engineering",
+   "uuid": "607c057459161394d748df802b30f07b",
+   "confidence": null,
+   "isKeySkill": true
+  },
+  {
+   "skill": "develop the requirements",
+   "uuid": "91ffbe3e5ba6a7f4881fd3880bf4fc7a",
+   "confidence": null,
+   "isKeySkill": false
+  },
+  {
+   "skill": "VC",
+   "uuid": "b7128ad1d9b838be26989d1037a8c987",
+   "confidence": null,
+   "isKeySkill": false
+  },
+  {
+   "skill": "Software Design",
+   "uuid": "c1b8eee14e05c47f56588fb5e842f6e9",
+   "confidence": null,
+   "isKeySkill": true
+  },
+  {
+   "skill": "C#",
+   "uuid": "d7efa19fbe7d3972fd5adb6024223d74",
+   "confidence": null,
+   "isKeySkill": false
+  },
+  {
+   "skill": "Software Development",
+   "uuid": "f287f429e4026672e5754c1201691e49",
+   "confidence": null,
+   "isKeySkill": true
+  },
+  {
+   "skill": "C++",
+   "uuid": "f6f87c9fdcf8b3c3f07f93f1ee8712c9",
+   "confidence": null,
+   "isKeySkill": false
+  }
+ ],
+ "flexibleWorkArrangements": [
+  {
+   "id": 1,
+   "flexibleWorkArrangement": "Flexi-Hours"
+  },
+  {
+   "id": 2,
+   "flexibleWorkArrangement": "Telecommuting"
+  },
+  {
+   "id": 3,
+   "flexibleWorkArrangement": "Employees Choice of Days Off"
+  }
+ ],
+ "otherRequirements": null,
+ "ssocCode": "25121",
+ "occupationId": "OCC002119",
+ "ssocVersion": "2020v3",
+ "workingHours": null,
+ "numberOfVacancies": 5,
+ "psdUrl": null,
+ "categories": [
+  {
+   "id": 11,
+   "category": "Engineering"
+  },
+  {
+   "id": 21,
+   "category": "Information Technology"
+  }
+ ],
+ "employmentTypes": [
+  {
+   "id": 3,
+   "employmentType": "Contract"
+  },
+  {
+   "id": 7,
+   "employmentType": "Permanent"
+  },
+  {
+   "id": 8,
+   "employmentType": "Full Time"
+  }
+ ],
+ "positionLevels": [
+  {
+   "id": 12,
+   "position": "Fresh/entry level"
+  }
+ ],
+ "status": {
+  "id": 103,
+  "jobStatus": "Re-open"
+ },
+ "ssecEqa": "NR",
+ "ssecFos": null,
+ "postedCompany": {
+  "uen": "202638446K",
+  "name": "CORVANTA TRADING PTE. LTD.",
+  "ssicCode": null,
+  "employeeCount": 38,
+  "companyUrl": "https://corvantatrading.com",
+  "lastSyncDate": "2026-11-09T03:48:52.000Z",
+  "ssicCode2020": "46900",
+  "_links": {
+   "self": {
+    "href": "https://api.mycareersfuture.gov.sg/v2/companies/202638446K"
+   },
+   "jobs": {
+    "href": "https://api.mycareersfuture.gov.sg/v2/companies/202638446K/jobs"
+   },
+   "addresses": {
+    "href": "https://api.mycareersfuture.gov.sg/v2/companies/202638446K/addresses"
+   },
+   "schemes": {
+    "href": "https://api.mycareersfuture.gov.sg/v2/companies/202638446K/schemes"
+   }
+  },
+  "ssicDescription2020": "WHOLESALE TRADE OF A VARIETY OF GOODS WITHOUT A DOMINANT PRODUCT",
+  "logoFileName": "5e3357d87f7a768f78542bbeae5edb8f/corvanta-trading.jpg",
+  "logoUploadPath": "https://static.mycareersfuture.gov.sg/images/company/logos/5e3357d87f7a768f78542bbeae5edb8f/corvanta-trading.jpg",
+  "responsiveEmployer": {
+   "isResponsive": false
+  }
+ },
+ "hiringCompany": null,
+ "address": {
+  "overseasCountry": null,
+  "foreignAddress1": null,
+  "foreignAddress2": null,
+  "block": "60",
+  "street": "PAYA LEBAR ROAD",
+  "floor": null,
+  "unit": null,
+  "building": "PAYA LEBAR SQUARE",
+  "postalCode": "409051",
+  "isOverseas": false,
+  "districts": [
+   {
+    "id": 14,
+    "location": "D14 Geylang, Eunos",
+    "region": "Central",
+    "sectors": [
+     "38",
+     "39",
+     "40",
+     "41"
+    ],
+    "regionId": "Central"
+   }
+  ],
+  "lat": 1.31881487007652,
+  "lng": 103.892580778514
+ },
+ "metadata": {
+  "jobPostId": "MCF-2026-1788768",
+  "deletedAt": "2026-11-08T17:15:04.000Z",
+  "createdBy": "43fdbfdc-0998-4346-801b-cc7409f1d917",
+  "createdAt": "2026-10-09T07:59:15.000Z",
+  "updatedAt": "2026-11-09T03:49:14.000Z",
+  "emailRecipient": "43fdbfdc-0998-4346-801b-cc7409f1d917",
+  "editCount": 0,
+  "repostCount": 1,
+  "totalNumberOfView": 1456,
+  "newPostingDate": "2026-11-09",
+  "originalPostingDate": "2026-10-09",
+  "expiryDate": "2026-12-09",
+  "totalNumberJobApplication": 228,
+  "isJdEnhanced": true,
+  "isPostedOnBehalf": false,
+  "isHideSalary": false,
+  "isHideCompanyAddress": false,
+  "isHideHiringEmployerName": false,
+  "isHideEmployerName": false,
+  "jobDetailsUrl": "https://www.mycareersfuture.gov.sg/job/engineering/software-engineer-corvanta-trading-13887c18d91bc6034bc8c351cf67ddec",
+  "matchedSkillsScore": null
+ },
+ "salary": {
+  "maximum": 7000,
+  "minimum": 4300,
+  "type": {
+   "id": 4,
+   "salaryType": "Monthly"
+  }
+ },
+ "_links": {
+  "self": {
+   "href": "https://api.mycareersfuture.gov.sg/v2/jobs/13887c18d91bc6034bc8c351cf67ddec"
+  },
+  "screeningQuestions": {
+   "href": "https://api.mycareersfuture.gov.sg/v2/jobs/13887c18d91bc6034bc8c351cf67ddec/screening-questions"
+  }
+ },
+ "jobTitles": []
+}

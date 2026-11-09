@@ -1,0 +1,40 @@
+name: Data feeds
+
+# Fetches the data the apps read and publishes it to the `data` branch, which the apps load
+# from raw.githubusercontent.com. The branch holds one commit that each run replaces, so the
+# repository doesn't grow with every fetch. Publishing data doesn't redeploy the site.
+on:
+  schedule:
+    - cron: '23 22 * * *' # 6:23 am in Singapore, daily
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-feeds
+  cancel-in-progress: false
+
+jobs:
+  feeds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Job Tracker feed (MyCareersFuture)
+        run: node tools/fetch-jobs.mjs out/jobs.json
+      - name: Publish to the data branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd out
+          printf '# Data feeds\n\nWritten by .github/workflows/data.yml on the main branch; replaced on every run.\n' > README.md
+          git init -q -b data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Data feeds, $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -qf "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" data

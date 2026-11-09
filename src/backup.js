@@ -8,7 +8,7 @@ export const STORAGE_KEYS = [
 ];
 
 // Saved by apps but not worth backing up: they're refetched when missing.
-export const CACHE_KEYS = ['split-rates', 'pocket-last-backup', 'pocket-first-seen', 'pocket-backup-snooze'];
+export const CACHE_KEYS = ['split-rates', 'pocket-last-backup', 'pocket-first-seen', 'pocket-backup-snooze', 'jobs-feed', 'jobs-feed-seen'];
 
 // Each database exactly as its app opens it, so restoring never creates a mismatched one.
 export const DATABASES = [

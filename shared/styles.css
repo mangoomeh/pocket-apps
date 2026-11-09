@@ -2275,3 +2275,13 @@ body:not(.ready) .balance .big, body:not(.ready) .balance .muted:not(:empty) {
 .pl-saved-icon { font-size: 1.8rem; }
 .pl-saved-main { flex: 1; }
 .theme-palm .balance { padding-top: calc(3.3rem + env(safe-area-inset-top)); }
+.jb-find-row { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-top: .7rem; }
+.jb-find-row .jb-filters { flex: 1 1 100%; min-width: 0; margin-top: 0; }
+.jb-find-min { flex: none; font: inherit; font-size: .88rem; padding: .4rem .5rem; border: 1px solid var(--border); border-radius: 10px; background: var(--card); color: var(--text); }
+.jb-find-status { margin: 0 .25rem .75rem; color: var(--muted); font-size: .88rem; }
+.jb-find-row-item { cursor: default; }
+.jb-find-row-item:hover { background: none; }
+.jb-new { flex: none; font-size: .7rem; font-weight: 800; padding: .1rem .45rem; border-radius: 999px; background: var(--accent); color: var(--accent-text); }
+.jb-skills { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .4rem; }
+.jb-skills span { font-size: .75rem; padding: .1rem .45rem; border-radius: 6px; background: var(--bg); color: var(--muted); }
+.jb-quick a.btn { text-decoration: none; display: inline-flex; align-items: center; }

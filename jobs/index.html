@@ -22,6 +22,7 @@
 
   <nav class="tabs" role="tablist">
     <button role="tab" data-tab="list" aria-selected="true">Jobs</button>
+    <button role="tab" data-tab="find">Find</button>
     <button role="tab" data-tab="upcoming">Upcoming <span class="jb-count" id="upcoming-count" hidden></span></button>
     <button role="tab" data-tab="prep">Prep</button>
     <button role="tab" data-tab="stats">Stats</button>
@@ -42,6 +43,25 @@
         <ul class="jb-list" id="job-list"></ul>
         <div class="jb-empty" id="empty" hidden></div>
       </div>
+    </section>
+
+    <!-- Software jobs in Singapore from MyCareersFuture, fetched daily by .github/workflows/data.yml. -->
+    <section data-panel="find" hidden>
+      <div class="card jb-tools">
+        <input class="jb-search" id="find-search" type="search" placeholder="Role, company or skill" autocomplete="off" aria-label="Search jobs">
+        <div class="jb-find-row">
+          <div class="jb-filters" id="find-levels" role="group" aria-label="Level"></div>
+          <select id="find-min" class="jb-find-min" aria-label="Minimum monthly salary">
+            <option value="0">Any pay</option><option value="4000">$4k+</option><option value="6000">$6k+</option><option value="8000">$8k+</option><option value="10000">$10k+</option><option value="13000">$13k+</option>
+          </select>
+        </div>
+      </div>
+      <p class="jb-find-status" id="find-status" role="status"></p>
+      <div class="card jb-list-card" id="find-card" hidden>
+        <ul class="jb-list" id="find-list"></ul>
+      </div>
+      <div class="actions" id="find-more-row" hidden><button type="button" class="secondary" id="find-more">Show more</button></div>
+      <p class="hint jb-foot">Software jobs in Singapore from <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener">MyCareersFuture</a>, updated every morning. Save one to add it to your applications as Wishlist.</p>
     </section>
 
     <section data-panel="upcoming" hidden>

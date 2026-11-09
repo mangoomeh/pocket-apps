@@ -145,6 +145,10 @@ Keeps track of every job you apply for, what's next for each, and how the search
   one at a time on the practice card, which can show your answer to check against. The bank (50 common questions
   in 8 groups, each with a tip, plus the STAR method) stays folded away; "Add the 10 most asked" is a quick start
   (`src/interview.js`).
+- **Find jobs:** software jobs in Singapore from MyCareersFuture (around 800, newest first), updated every morning
+  by a GitHub Actions workflow. Search by role, company or skill, filter by level and minimum monthly pay, see which
+  are new since your last look, and save one to your applications as Wishlist (company, role, pay, area, link and
+  skills filled in). The last feed is kept for offline use (`src/jobfeed.js`).
 - Logic in `src/jobs.js`; kept on the phone and included in backups.
 
 ### 👛 Spending (`spend/`)
@@ -454,6 +458,10 @@ anything does. The tests fail if `sw.js` or `version.js` is out of date, so a fo
 rather than shipping an old offline copy.
 
 Every push to `main` runs the tests and publishes to GitHub Pages (`.github/workflows/pages.yml`).
+
+Data the apps read comes from `.github/workflows/data.yml`, which runs every morning (or from the Actions page):
+it fetches the job feed (`tools/fetch-jobs.mjs`) and publishes it to the `data` branch as a single commit that
+each run replaces. The apps load it from `raw.githubusercontent.com`, so new data doesn't need a redeploy.
 
 ## Layout
 

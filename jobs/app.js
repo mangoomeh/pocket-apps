@@ -8,6 +8,7 @@ import {
   CATEGORIES as Q_CATS, QUESTIONS, STAR, pickPractice, MOST_ASKED, withFavs, myQuestions, isFav, toggleFav, addCustom, removeCustom,
   progressOf,
 } from '../src/interview.js';
+import { FEED_URL, LEVELS, filterFeed, salaryText, toTracker } from '../src/jobfeed.js';
 import { $, esc, switchTab, toast } from '../shared/ui.js';
 
 const STORAGE_KEY = 'jobs-v1';
@@ -473,7 +474,109 @@ function deleteJob() {
 // The Add button is for applications, so it shows only where they're listed.
 let tab = 'list';
 const showAdd = () => { $('add').hidden = !state.jobs.length || !['list', 'upcoming'].includes(tab); };
-document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab; switchTab(tab); showAdd(); }));
+document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => {
+  tab = b.dataset.tab;
+  switchTab(tab);
+  showAdd();
+  if (tab === 'find') openFind();
+}));
+
+// ---- Find jobs: the daily feed ------------------------------------------------------------------
+
+const FEED_KEY = 'jobs-feed'; // the last feed fetched, for offline
+const SEEN_KEY = 'jobs-feed-seen'; // ids already shown, so new ones can be marked
+const PAGE = 30;
+let feed = null; // { fetchedAt, jobs }
+let fresh = new Set(); // ids new since the last visit
+let findLevel = 'all';
+let shown = PAGE;
+let feedLoading = null;
+
+const readCache = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
+const writeCache = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* the feed just isn't kept offline */ } };
+
+function useFeed(data) {
+  feed = data;
+  const seen = readCache(SEEN_KEY);
+  fresh = Array.isArray(seen) ? new Set(data.jobs.map((j) => j.id).filter((id) => !seen.includes(id))) : new Set();
+  writeCache(SEEN_KEY, data.jobs.map((j) => j.id));
+}
+
+function openFind() {
+  if (!feed) {
+    const cached = readCache(FEED_KEY);
+    if (cached?.jobs) { feed = cached; }
+  }
+  renderFind();
+  // Fetch at most once per opening of the app; the feed changes once a day.
+  feedLoading ??= fetch(FEED_URL, { cache: 'no-cache' })
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
+    .then((data) => {
+      if (!Array.isArray(data?.jobs)) throw new Error('bad feed');
+      useFeed(data);
+      writeCache(FEED_KEY, data);
+    })
+    .catch(() => { if (!feed) feed = { error: true, jobs: [] }; })
+    .finally(renderFind);
+}
+
+const trackedLinks = () => new Set(state.jobs.map((j) => j.link));
+
+function findRow(j, tracked) {
+  const t = today();
+  const saved = tracked.has(j.url);
+  const pay = salaryText(j);
+  const meta = [pay && `${pay}/mo`, j.level[0], j.posted && `posted ${relDay(j.posted, t)}`, j.applicants != null && `${j.applicants} applied`].filter(Boolean);
+  return `<li class="jb-row jb-find-row-item">
+    <div class="jb-main">
+      <div class="jb-top"><strong>${esc(j.title)}</strong>${fresh.has(j.id) ? '<span class="jb-new">New</span>' : ''}</div>
+      <div class="jb-sub">${esc(j.company || 'Company not shown')}${j.area ? ` · ${esc(j.area.replace(/^D\d+\s*/, ''))}` : ''}</div>
+      <div class="jb-meta">${meta.map(esc).join(' · ')}</div>
+      ${j.skills.length ? `<div class="jb-skills">${j.skills.slice(0, 4).map((s) => `<span>${esc(s)}</span>`).join('')}</div>` : ''}
+      <div class="jb-quick">
+        <button type="button" class="secondary small" data-save-feed="${esc(j.id)}" ${saved ? 'disabled' : ''}>${saved ? '✓ Saved' : '＋ Save'}</button>
+        <a class="secondary btn small" href="${esc(j.url)}" target="_blank" rel="noopener noreferrer">View job</a>
+      </div>
+    </div>
+  </li>`;
+}
+
+function renderFind() {
+  $('find-levels').innerHTML = LEVELS.map((l) => `<button type="button" class="jb-chip" data-level="${l.id}" aria-pressed="${l.id === findLevel}">${esc(l.label)}</button>`).join('');
+  const status = $('find-status');
+  if (!feed) { status.textContent = 'Loading jobs…'; $('find-card').hidden = true; $('find-more-row').hidden = true; return; }
+  if (feed.error) { status.textContent = 'Couldn’t load jobs. Check your connection and try again.'; $('find-card').hidden = true; $('find-more-row').hidden = true; return; }
+  const list = filterFeed(feed.jobs, { query: $('find-search').value, minSalary: Number($('find-min').value), level: findLevel });
+  // New ones first, then newest posting.
+  list.sort((a, b) => (fresh.has(b.id) ? 1 : 0) - (fresh.has(a.id) ? 1 : 0));
+  const updated = feed.fetchedAt ? relDay(localIso(new Date(feed.fetchedAt)), today()) : '';
+  const newCount = feed.jobs.filter((j) => fresh.has(j.id)).length;
+  status.textContent = `${list.length === feed.jobs.length ? `${feed.jobs.length} software jobs` : `${list.length} of ${feed.jobs.length} jobs`}${newCount ? ` · ${newCount} new since last time` : ''}${updated ? ` · updated ${updated}` : ''}`;
+  const tracked = trackedLinks();
+  $('find-list').innerHTML = list.slice(0, shown).map((j) => findRow(j, tracked)).join('');
+  $('find-card').hidden = !list.length;
+  $('find-more-row').hidden = list.length <= shown;
+}
+
+const refilter = () => { shown = PAGE; renderFind(); };
+$('find-search').addEventListener('input', refilter);
+$('find-min').addEventListener('change', refilter);
+$('find-levels').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-level]');
+  if (b) { findLevel = b.dataset.level; refilter(); }
+});
+$('find-more').addEventListener('click', () => { shown += PAGE; renderFind(); });
+$('find-list').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-save-feed]');
+  if (!b || !feed) return;
+  const j = feed.jobs.find((x) => x.id === b.dataset.saveFeed);
+  if (!j || trackedLinks().has(j.url)) return;
+  state.jobs.push(newJob(toTracker(j), today(), newId()));
+  save();
+  render();
+  renderFind();
+  toast(`Saved to Wishlist: ${j.title}`);
+});
 $('search').addEventListener('input', () => { query = $('search').value; renderList(); });
 $('filters').addEventListener('click', (ev) => {
   const b = ev.target.closest('[data-filter]');
