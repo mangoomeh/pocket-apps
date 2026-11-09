@@ -14,19 +14,23 @@
 </head>
 <body class="theme-palm" data-saves="palm-v1">
   <header class="balance">
-    <a class="back" href="../">‹ Apps</a>
-    <p class="eyebrow">Palmistry</p>
-    <p class="big">Palm Reading</p>
-    <p class="muted">Look at your palm, pick what you see, and get your reading</p>
+    <a class="back" href="../" data-zh="‹ 应用">‹ Apps</a>
+    <div class="lang-switch" role="radiogroup" aria-label="Language 语言">
+      <label><input type="radio" name="lang" value="zh"> 中文</label>
+      <label><input type="radio" name="lang" value="en" checked> EN</label>
+    </div>
+    <p class="eyebrow" data-zh="手相">Palmistry</p>
+    <p class="big" data-zh="看手相">Palm Reading</p>
+    <p class="muted" data-zh="看看你的手掌，选出你看到的，得到你的解读">Look at your palm, pick what you see, and get your reading</p>
   </header>
 
   <nav class="tabs" role="tablist">
-    <button role="tab" data-tab="read" aria-selected="true">Read</button>
-    <button role="tab" data-tab="learn">Learn</button>
-    <button role="tab" data-tab="saved">Saved</button>
+    <button role="tab" data-tab="read" aria-selected="true" data-zh="看手相">Read</button>
+    <button role="tab" data-tab="learn" data-zh="学习">Learn</button>
+    <button role="tab" data-tab="saved" data-zh="已保存">Saved</button>
   </nav>
 
-  <div class="boot" role="status"><span class="sr-only">Loading…</span>
+  <div class="boot" role="status"><span class="sr-only">Loading… 载入中…</span>
     <div class="boot-card" aria-hidden="true"><i></i><i class="w80"></i><i class="w60"></i></div>
     <div class="boot-card" aria-hidden="true"><i></i><i></i><i class="w80"></i><i class="w60"></i></div>
   </div>
@@ -35,12 +39,12 @@
       <!-- An optional photo of your palm, to compare with while answering. Never saved. -->
       <div class="card pl-photo" id="photo-card">
         <div class="pl-photo-empty" id="photo-empty">
-          <p><b>Tip:</b> take a photo of your palm in good light to compare with as you go. It stays on this screen and isn’t saved.</p>
-          <label class="secondary btn small pl-photo-btn">📷 Photo of my palm<input type="file" id="photo-input" accept="image/*" capture="environment" hidden></label>
+          <p data-zh="<b>小提示：</b>在光线好的地方拍一张手掌照片，边看边对照。照片只留在这个画面上，不会保存。"><b>Tip:</b> take a photo of your palm in good light to compare with as you go. It stays on this screen and isn’t saved.</p>
+          <label class="secondary btn small pl-photo-btn"><span data-zh="📷 拍我的手掌">📷 Photo of my palm</span><input type="file" id="photo-input" accept="image/*" capture="environment" hidden></label>
         </div>
         <div class="pl-photo-view" id="photo-view" hidden>
           <img id="photo-img" alt="Your palm">
-          <button type="button" class="text-btn" id="photo-remove">Remove photo</button>
+          <button type="button" class="text-btn" id="photo-remove" data-zh="移除照片">Remove photo</button>
         </div>
       </div>
       <div id="reader"></div>
@@ -48,14 +52,14 @@
 
     <section role="tabpanel" data-panel="learn" hidden>
       <div class="card">
-        <h2>How to read your palm</h2>
+        <h2 data-zh="怎样看手相">How to read your palm</h2>
         <ol class="pl-howto">
-          <li>Use good light, with your hand relaxed and slightly cupped so the lines show.</li>
-          <li>Start with your dominant hand (the one you write with); you can read the other one afterwards and compare.</li>
-          <li>Look for the three big lines first: heart (top), head (middle) and life (round the thumb). Most people have all three.</li>
-          <li>Lines vary a lot and many hands are in between. When unsure, pick the closer match or skip.</li>
+          <li data-zh="在光线好的地方看，手放松、稍微弯曲，掌纹会更清楚。">Use good light, with your hand relaxed and slightly cupped so the lines show.</li>
+          <li data-zh="先看惯用手（写字的那只），之后可以再看另一只手来比较。">Start with your dominant hand (the one you write with); you can read the other one afterwards and compare.</li>
+          <li data-zh="先找三条主线：感情线（最上面）、智慧线（中间）和生命线（绕着拇指）。大多数人三条都有。">Look for the three big lines first: heart (top), head (middle) and life (round the thumb). Most people have all three.</li>
+          <li data-zh="每个人的掌纹差别很大，很多手介于两者之间。拿不准时，选比较接近的，或者跳过。">Lines vary a lot and many hands are in between. When unsure, pick the closer match or skip.</li>
         </ol>
-        <p class="hint">Palmistry is a tradition, not a science: enjoy it as a way to reflect, not to predict.</p>
+        <p class="hint" data-zh="手相是一种传统，不是科学：把它当作自我反思的方式来享受，而不是用来预测。">Palmistry is a tradition, not a science: enjoy it as a way to reflect, not to predict.</p>
       </div>
       <div id="learn"></div>
     </section>

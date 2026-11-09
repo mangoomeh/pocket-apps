@@ -151,17 +151,18 @@ export const optionOf = (step, id) => step?.options.find((o) => o.id === id) || 
 // How many steps are answered (skips don't count).
 export const answeredCount = (answers) => STEPS.filter((s) => optionOf(s, answers[s.id])).length;
 
-// The reading for a set of answers ({ stepId: optionId }); unknown ids are ignored.
-export function buildReading(answers) {
+// The reading for a set of answers ({ stepId: optionId }) in `lang`; unknown ids are ignored.
+export function buildReading(answers, lang = 'en') {
+  const C = content(lang);
   const el = elementOf(answers);
-  const element = el ? ELEMENTS[el] : null;
-  const hand = optionOf(stepById('hand'), answers.hand);
+  const element = el ? C.ELEMENTS[el] : null;
+  const hand = optionOf(C.STEPS.find((s) => s.id === 'hand'), answers.hand);
   const sections = [];
   const keywords = [...(element?.keywords || [])];
-  for (const sec of SECTIONS) {
+  for (const sec of C.SECTIONS) {
     const text = [];
     if (sec.id === 'character' && element) text.push(element.text);
-    for (const step of STEPS.filter((s) => s.section === sec.id)) {
+    for (const step of C.STEPS.filter((s) => s.section === sec.id)) {
       const o = optionOf(step, answers[step.id]);
       if (!o) continue;
       if (o.meaning) text.push(o.meaning);
@@ -169,7 +170,7 @@ export function buildReading(answers) {
     }
     if (text.length) sections.push({ ...sec, text });
   }
-  const title = element ? element.name : 'Your palm';
+  const title = element ? element.name : lang === 'zh' ? ZH.yourPalm : 'Your palm';
   return { title, icon: element?.icon || '🖐️', element: el, intro: hand?.meaning || '', sections, keywords, answered: answeredCount(answers) };
 }
 
@@ -249,12 +250,128 @@ export function newSaved(answers, id, now = Date.now()) {
 }
 
 // What a reading says, as plain text for sharing.
-export function readingText(answers) {
-  const r = buildReading(answers);
+export function readingText(answers, lang = 'en') {
+  const r = buildReading(answers, lang);
+  const zh = lang === 'zh';
   const parts = [`${r.icon} ${r.title}`];
   if (r.intro) parts.push(r.intro);
   for (const s of r.sections) parts.push(`${s.icon} ${s.title}\n${s.text.join(' ')}`);
-  if (r.keywords.length) parts.push(`Keywords: ${r.keywords.join(', ')}`);
-  parts.push('For fun and reflection, from traditional palmistry.');
+  if (r.keywords.length) parts.push(zh ? `${ZH.keywordsLabel}：${r.keywords.join('、')}` : `Keywords: ${r.keywords.join(', ')}`);
+  parts.push(zh ? ZH.footer : 'For fun and reflection, from traditional palmistry.');
   return parts.join('\n\n');
+}
+
+// ---- 中文 -------------------------------------------------------------------------------------
+// Simplified Chinese for every step, option, hand type and section, by id. Anything missing
+// falls back to English (tests/palm.test.js checks nothing is).
+
+export const ZH = {
+  steps: {
+    hand: { title: '你看的是哪只手？', spot: '手相两只手都看。惯用手（写字的那只）代表你后天的努力和未来的方向；另一只手代表你与生俱来的天性。',
+      options: {
+        dominant: { label: '我的惯用手', short: '惯用手', meaning: '这是你的惯用手，所以这份解读讲的是你后天成为的样子，以及你正在走的方向。' },
+        other: { label: '我的另一只手', short: '另一只手', meaning: '这是你的非惯用手，所以这份解读讲的是你与生俱来的天性：你的本能与潜质。' },
+      } },
+    palm: { title: '手掌形状', spot: '只看手掌，不看手指。比较手指根部的掌宽，和从那里到第一条腕纹的掌长。',
+      options: {
+        square: { label: '方形', short: '方形手掌', hint: '长和宽差不多' },
+        long: { label: '长形', short: '长形手掌', hint: '明显长过宽' },
+      } },
+    fingers: { title: '手指长度', spot: '手指并拢，拿中指和手掌的长度比较。',
+      options: {
+        short: { label: '短', short: '短手指', hint: '中指明显比手掌短' },
+        long: { label: '长', short: '长手指', hint: '中指和手掌差不多长' },
+      } },
+    heartEnd: { title: '感情线：在哪里结束', spot: '感情线是横过手掌的几条主线中最上面的一条。它从小指下方的掌边开始，往食指方向延伸。它在哪里停下？',
+      options: {
+        middle: { label: '中指下方', short: '感情线止于中指下方', keywords: ['独立', '用行动表达爱'],
+          meaning: '你的感情线止于中指下方：你更多用行动而不是言语表达爱，在感情里也需要保有自己的空间。' },
+        between: { label: '中指与食指之间', short: '感情线止于中指与食指之间', keywords: ['平衡', '温暖'],
+          meaning: '你的感情线止于中指和食指之间，这是最平衡的位置：温暖体贴，又能看清人情，付出与收获都恰到好处。' },
+        index: { label: '食指下方', short: '感情线止于食指下方', keywords: ['忠诚', '理想主义'],
+          meaning: '你的感情线延伸到食指下方：你忠诚专一，对爱情有很高的理想，宁愿等对的人，也不愿将就。' },
+      } },
+    heartShape: { title: '感情线：形状', spot: '顺着感情线看下去。它是向上弯成一道弧线，还是比较平直地横过手掌？',
+      options: {
+        curved: { label: '向上弯曲', short: '弯曲的感情线', keywords: ['善于表达', '深情'],
+          meaning: '它向上弯曲，代表你对感情很坦率：深情、浪漫，心里怎么想很快就会表现出来。' },
+        straight: { label: '比较平直', short: '平直的感情线', keywords: ['内敛', '稳定'],
+          meaning: '它比较平直，说明你在信任一个人之前会把感情藏在心里，爱得平静而长久。' },
+      } },
+    headLength: { title: '智慧线：长度', spot: '智慧线是往下的第二条主线。它从拇指那一侧、拇指和食指之间开始，横过手掌。它延伸到哪里？',
+      options: {
+        short: { label: '短', short: '短智慧线', hint: '大约停在手掌中间', keywords: ['果断', '务实'],
+          meaning: '智慧线较短：你思考快、决定快，比起反复琢磨，更喜欢行动和看得见的结果。' },
+        long: { label: '长', short: '长智慧线', hint: '几乎横过整个手掌', keywords: ['周全', '好奇'],
+          meaning: '智慧线很长：你想事情周全，会从各个角度考虑，喜欢提前计划，兴趣也很广。' },
+      } },
+    headSlope: { title: '智慧线：平直还是下垂', spot: '智慧线是平直地横过手掌，还是在小指那一侧往手腕方向弯下去？',
+      options: {
+        straight: { label: '平直', short: '平直的智慧线', keywords: ['理性', '实际'],
+          meaning: '它平直地横过手掌：头脑理性、实际，喜欢事实、条理和清楚的计划。' },
+        sloping: { label: '向下倾斜', short: '下垂的智慧线', keywords: ['想象力丰富', '有创意'],
+          meaning: '它往手腕方向倾斜，这是想象力的标志：有创意、直觉敏锐，对想法和感受同样得心应手。' },
+      } },
+    headStart: { title: '智慧线：起点', spot: '看智慧线靠近拇指的起点。它一开始是和生命线（绕着拇指的那条线）连在一起，还是分开的？',
+      options: {
+        joined: { label: '与生命线相连', short: '智慧线与生命线相连', keywords: ['谨慎', '重视家庭'],
+          meaning: '它的起点和生命线相连：你习惯三思而后行，家人和亲近的关系很早就塑造了你。' },
+        separate: { label: '分开起始', short: '智慧线与生命线分开', keywords: ['独立', '爱冒险'],
+          meaning: '它的起点和生命线分开：你从小就很独立，自信，也敢于冒险。' },
+      } },
+    lifeArc: { title: '生命线：弧度', spot: '生命线绕着拇指根部，从拇指和食指之间往手腕方向弯下去。（它的长短并不代表寿命，那是误传。）这道弧有多宽？',
+      options: {
+        wide: { label: '很宽，延伸到掌心', short: '宽阔的生命线', keywords: ['精力充沛', '外向'],
+          meaning: '你的生命线大大地弯进掌心：精力充沛、热情满满，出门做事的时候最开心。' },
+        close: { label: '贴近拇指', short: '贴近拇指的生命线', keywords: ['平和', '恋家'],
+          meaning: '你的生命线紧贴拇指：你喜欢平静和家的舒适，和熟悉的人在一起、好好休息最能让你充电。' },
+      } },
+    fate: { title: '事业线', spot: '事业线（也叫命运线）从手腕附近往中指方向，竖着穿过手掌中央。不是每个人都有。你的是什么样子？',
+      options: {
+        strong: { label: '清晰而深', short: '清晰的事业线', keywords: ['有干劲', '专注'],
+          meaning: '事业线清晰：你很有方向感，往往有一份像是命中注定的志向或事业。' },
+        faint: { label: '浅或断续', short: '浅的事业线', keywords: ['适应力强', '开放'],
+          meaning: '事业线浅或断续：你的道路随着兴趣的变化和抓住的机会而改变。你适应力强，也能重新塑造自己。' },
+        fromLife: { label: '从生命线长出', short: '事业线起于生命线', keywords: ['白手起家'],
+          meaning: '你的事业线从生命线长出：这是一条靠自己努力走出来的路，早年也得到了家人的支持。' },
+        none: { label: '我看不到', short: '没有事业线', keywords: ['自由'],
+          meaning: '没有明显的事业线：你不受一条固定的路束缚。很多成功的人都没有事业线，它代表你可以自由选择。' },
+      } },
+    sun: { title: '太阳线', spot: '太阳线是无名指下方一条较短的竖线，常常没有或很浅。',
+      options: {
+        clear: { label: '我看得到', short: '有太阳线', keywords: ['有创意', '受人赏识'],
+          meaning: '你有太阳线：工作中充满创意和乐趣，也很容易被人注意和欣赏。' },
+        none: { label: '没有太阳线', short: '没有太阳线',
+          meaning: '没有太阳线：你的满足感来得安静，更多来自事情本身，而不是掌声。' },
+      } },
+  },
+  elements: {
+    earth: { name: '土型手', keywords: ['务实', '可靠'], text: '方形手掌配短手指是土型手：务实、踏实、靠得住。你相信看得见摸得着的东西，喜欢动手做事，大家都信赖你的常识。' },
+    air: { name: '风型手', keywords: ['好奇', '善于沟通'], text: '方形手掌配长手指是风型手：好奇、合群、反应快。你喜欢想法和交流，需要新鲜感才不会觉得无聊。' },
+    water: { name: '水型手', keywords: ['直觉强', '敏感'], text: '长形手掌配长手指是水型手：敏感、直觉强、富有想象力。你感受深刻，很会读懂别人，也容易被创意工作吸引。' },
+    fire: { name: '火型手', keywords: ['精力充沛', '热情'], text: '长形手掌配短手指是火型手：精力充沛、热情、自信。你凭直觉行动，能鼓舞别人，最怕一成不变。' },
+  },
+  sections: { character: '性格', love: '爱情与感情', mind: '思维', energy: '精力', path: '人生道路' },
+  yourPalm: '你的手掌',
+  keywordsLabel: '关键词',
+  footer: '依据传统手相学，仅供娱乐与自我反思。',
+};
+
+const zhStep = (id) => ZH.steps[id] || {};
+
+// The steps, hand types and sections in `lang` ('en' or 'zh'), same shape as the English.
+export function content(lang = 'en') {
+  if (lang !== 'zh') return { STEPS, ELEMENTS, SECTIONS };
+  return {
+    STEPS: STEPS.map((s) => ({
+      ...s, ...pick(zhStep(s.id), ['title', 'spot']),
+      options: s.options.map((o) => ({ ...o, ...pick(zhStep(s.id).options?.[o.id], ['label', 'short', 'hint', 'meaning', 'keywords']) })),
+    })),
+    ELEMENTS: Object.fromEntries(Object.entries(ELEMENTS).map(([k, e]) => [k, { ...e, ...pick(ZH.elements[k], ['name', 'keywords', 'text']) }])),
+    SECTIONS: SECTIONS.map((s) => ({ ...s, title: ZH.sections[s.id] || s.title })),
+  };
+}
+
+function pick(obj, keys) {
+  return Object.fromEntries(keys.filter((k) => obj?.[k] != null).map((k) => [k, obj[k]]));
 }

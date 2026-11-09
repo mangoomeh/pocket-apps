@@ -70,3 +70,38 @@ test('saving and sharing a reading', () => {
   assert.match(text, /❤️ Love and feelings\n.*curves upwards/);
   assert.match(text, /For fun and reflection/);
 });
+
+test('中文: every step, option, hand type and section is translated', async () => {
+  const { ZH, content } = await import('../src/palm.js');
+  for (const s of STEPS) {
+    const z = ZH.steps[s.id];
+    assert.ok(z?.title && z.spot, s.id);
+    assert.match(z.title + z.spot, /[一-鿿]/, `${s.id} is Chinese`);
+    for (const o of s.options) {
+      const zo = z.options?.[o.id];
+      assert.ok(zo?.label && zo.short, `${s.id}.${o.id}`);
+      for (const k of ['hint', 'meaning']) if (o[k]) assert.ok(zo[k], `${s.id}.${o.id}.${k}`);
+      if (o.keywords) assert.equal(zo.keywords?.length, o.keywords.length, `${s.id}.${o.id} keywords`);
+    }
+  }
+  for (const [k, e] of Object.entries(ELEMENTS)) assert.ok(ZH.elements[k]?.name && ZH.elements[k].text && ZH.elements[k].keywords.length === e.keywords.length, k);
+  for (const sec of SECTIONS) assert.ok(ZH.sections[sec.id], sec.id);
+  const zh = content('zh');
+  assert.equal(zh.STEPS.length, STEPS.length);
+  assert.equal(zh.STEPS[3].options[0].draw.heartEnd, 'middle', 'drawings stay the same');
+  assert.equal(content('en').STEPS, STEPS);
+});
+
+test('中文 readings and sharing', () => {
+  const answers = { hand: 'other', palm: 'long', fingers: 'long', heartShape: 'straight', fate: 'none' };
+  const r = buildReading(answers, 'zh');
+  assert.equal(r.title, '水型手');
+  assert.match(r.intro, /非惯用手/);
+  assert.deepEqual(r.sections.map((s) => s.title), ['性格', '爱情与感情', '人生道路']);
+  assert.ok(r.keywords.includes('内敛'));
+  assert.equal(buildReading({}, 'zh').title, '你的手掌');
+  const text = readingText(answers, 'zh');
+  assert.match(text, /关键词：直觉强、敏感/);
+  assert.match(text, /仅供娱乐/);
+  assert.equal(buildReading(answers).title, 'Water hand', 'English is unchanged');
+});

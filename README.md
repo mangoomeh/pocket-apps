@@ -413,8 +413,10 @@ your hand and choose what you see.
 - **The reading:** your hand type and character, love and feelings, mind, energy and life path, with keywords.
   Save it, share it as text, change answers or read the other hand.
 - **Learn:** the four hand types and every line with what each variation traditionally means.
-- For fun and reflection, from traditional palmistry. Logic and drawings in `src/palm.js`; kept on the phone and
-  included in backups.
+- **English or 中文:** the switch in the header changes everything, saved readings included; it starts in Chinese on
+  phones set to Chinese.
+- For fun and reflection, from traditional palmistry. Logic, drawings and the Chinese text in `src/palm.js`; kept on
+  the phone and included in backups.
 
 ### 🌙 Tarot (`tarot/`)
 

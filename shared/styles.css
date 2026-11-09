@@ -2274,3 +2274,4 @@ body:not(.ready) .balance .big, body:not(.ready) .balance .muted:not(:empty) {
 .pl-learn-list li { margin: .35rem 0; }
 .pl-saved-icon { font-size: 1.8rem; }
 .pl-saved-main { flex: 1; }
+.theme-palm .balance { padding-top: calc(3.3rem + env(safe-area-inset-top)); }
