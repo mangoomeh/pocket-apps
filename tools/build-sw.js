@@ -7,7 +7,7 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = fileURLToPath(new URL('..', import.meta.url));
-export const APPS = ['petty-cash', 'sushiro', 'split', 'trip', 'calc84', 'wallets', 'bazi', 'ziwei', 'fengshui', 'learnai', 'godigital', 'tarot', 'jobs', 'lists', 'spend', 'palm'];
+export const APPS = ['petty-cash', 'sushiro', 'split', 'trip', 'calc84', 'wallets', 'bazi', 'ziwei', 'fengshui', 'learnai', 'godigital', 'tarot', 'jobs', 'lists', 'spend', 'palm', 'bus'];
 export const SHARED = ['index.html', 'manifest.webmanifest', 'shared', 'src', 'icons'];
 // Big icons are only fetched when an app is installed, so they aren't stored for offline use.
 const SKIP = /(^|\/)\.DS_Store$|-(512|maskable)\.png$/;

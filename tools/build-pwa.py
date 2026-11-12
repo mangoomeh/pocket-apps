@@ -31,6 +31,7 @@ APPS = [
     ('lists', 'Lists', 'Lists', '📝', '#15803d'),
     ('spend', 'Spending', 'Spending', '👛', '#be123c'),
     ('palm', 'Palm Reading', 'Palm', '🖐️', '#92400e'),
+    ('bus', 'Bus', 'Bus', '🚌', '#0e7490'),
 ]
 
 

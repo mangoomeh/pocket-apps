@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0e7490">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Bus</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="../icons/bus-apple.png">
+  <link rel="icon" href="../icons/bus-192.png">
+  <script type="module" src="../shared/pwa.js"></script>
+  <link rel="stylesheet" href="../shared/styles.css">
+</head>
+<body class="theme-bus" data-saves="bus-v1">
+  <header class="balance">
+    <a class="back" href="../">‹ Apps</a>
+    <p class="eyebrow">Singapore bus arrivals</p>
+    <p class="big">Bus</p>
+    <p class="muted" id="subline">Live times for the stops you use</p>
+  </header>
+
+  <div class="boot" role="status"><span class="sr-only">Loading…</span>
+    <div class="boot-card" aria-hidden="true"><i></i><i class="w80"></i><i class="w60"></i></div>
+    <div class="boot-card" aria-hidden="true"><i></i><i></i><i class="w80"></i><i class="w60"></i></div>
+  </div>
+  <main>
+    <div class="card bs-find">
+      <div class="bs-find-row">
+        <input class="jb-search" id="q" type="search" inputmode="search" placeholder="Stop code or name" autocomplete="off" aria-label="Find a bus stop">
+        <button type="button" class="secondary bs-near" id="near">📍 Nearby</button>
+      </div>
+      <p class="bs-find-status" id="find-status" role="status" hidden></p>
+      <ul class="bs-results" id="results"></ul>
+    </div>
+
+    <div id="open-stop"></div>
+
+    <h2 class="bs-section" id="mine-title">My stops</h2>
+    <div id="mine"></div>
+    <div class="card bs-empty" id="mine-empty" hidden>
+      <p><b>No stops saved yet.</b></p>
+      <p class="hint">Find a stop above (or tap 📍 Nearby), then tap ☆ to keep it here with live times.</p>
+    </div>
+
+    <details class="card bs-settings" id="settings">
+      <summary>Where the times come from</summary>
+      <p class="hint">Arrival times are LTA's live data. By default they come through <b>arrivelah</b>, a free public service run by busrouter.sg; if it's down, times won't load. For dependable times, run your own free server with your own LTA key: see the steps in <a href="https://github.com/mangoomeh/pocket-apps/blob/main/tools/bus-worker.js" target="_blank" rel="noopener">tools/bus-worker.js</a>, then paste its address here.</p>
+      <label class="field"><span>Your own server <small>(optional)</small></span>
+        <input id="server" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://bus.your-name.workers.dev">
+      </label>
+      <div class="actions"><button type="button" class="secondary" id="server-test">Save and test</button></div>
+      <p class="status" id="server-status" hidden></p>
+      <p class="hint bs-credit">Bus stops from <a href="https://busrouter.sg" target="_blank" rel="noopener">busrouter.sg</a>; arrival data © LTA DataMall.</p>
+    </details>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

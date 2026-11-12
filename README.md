@@ -129,6 +129,20 @@ A day-by-day itinerary and a packing list for each trip.
   all-day event, timed items as one-hour events and untimed ones as all-day events.
 - **Expenses in Split:** opens this trip's group in Split, or starts one named after the trip.
 
+### 🚌 Bus (`bus/`)
+
+Live bus arrival times in Singapore.
+
+- **Find a stop** by its 5-digit code, name or road, or tap 📍 **Nearby** for the closest stops (within 1.5 km).
+- **My stops:** tap ☆ to keep a stop on the page. Each shows its services with the next three buses in minutes,
+  where each bus is going, how full it is (green seats, amber standing, red full), double-deckers and bendy buses,
+  and ~ for a scheduled rather than live-tracked time. Times count down and refresh every 30 seconds.
+- **Data:** stops from busrouter.sg's open data (kept for a week, so search and Nearby work offline); arrivals from
+  LTA DataMall. LTA's API needs a key and doesn't answer other websites, so by default arrivals come through
+  arrivelah, a free public service run by busrouter.sg. For dependable times, deploy `tools/bus-worker.js` as a
+  free Cloudflare Worker with your own LTA DataMall key (steps in the file) and paste its address in Settings.
+- Logic in `src/bus.js`; saved stops are kept on the phone and included in backups.
+
 ### 💼 Job Tracker (`jobs/`)
 
 Keeps track of every job you apply for, what's next for each, and how the search is going.
@@ -476,8 +490,8 @@ each run replaces. The apps load it from `raw.githubusercontent.com`, so new dat
 - `manifest.webmanifest` in each folder, and `icons/`: what a phone uses when an app is added to the home screen
 - `shared/styles.css`: every app's styles and themes (Sushiro, Windows 95 for Petty Cash, and so on)
 - `shared/ui.js`: helpers every app uses (`$`, `esc`, `toast`, `switchTab`)
-- `petty-cash/`, `sushiro/`, `split/`, `trip/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `godigital/`, `tarot/`, `jobs/`, `lists/`, `spend/`, `palm/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
-- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `jobs.js`, `interview.js`, `lists.js`, `spend.js`, `palm.js`, `compass.js`), with all money in integer cents
+- `petty-cash/`, `sushiro/`, `split/`, `trip/`, `ziwei/`, `calc84/`, `wallets/`, `bazi/`, `fengshui/`, `learnai/`, `godigital/`, `tarot/`, `jobs/`, `lists/`, `spend/`, `palm/`, `bus/`: each app's page and UI script (`sushiro/ocr.js` and `sushiro/photos.js` handle receipts)
+- `src/`: the logic as pure functions (`cash.js`, `sushiro.js`, `split.js`, `trip.js`, `sync.js` (share links and merging), `backup.js`, `receipt.js`, `ti84.js`, `onchain.js`, `bazi.js`, `baziread.js`, `bazimatch.js`, `ziwei.js`, `fengshui.js`, `plangrid.js`, `places.js`, `learnai.js`, `jobs.js`, `interview.js`, `lists.js`, `spend.js`, `palm.js`, `bus.js`, `jobfeed.js`, `compass.js`), with all money in integer cents
 - `tests/`: unit tests for `src/`, plus checks that the offline and install files are complete
 - `tools/`: `build-sw.js` (offline file list) and `build-pwa.py` (icons and manifests)
 
